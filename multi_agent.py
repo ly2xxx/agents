@@ -146,9 +146,10 @@ workflow.set_entry_point(TEAM_SUPERVISOR_NAME)
 
 travel_agent_graph = workflow.compile()
 
-for chunk in travel_agent_graph.stream(
-    {"messages": [HumanMessage(content="I want to go to Inverness for a weekend golf trip")]}, config={"recursion_limit": 50}
-):
-    if "__end__" not in chunk:
-        print(chunk)
-        print(f"{Fore.GREEN}#############################{Style.RESET_ALL}")
+if __name__ == "__main__":
+    for chunk in travel_agent_graph.stream(
+        {"messages": [HumanMessage(content="I want to go to St Andrews for a weekend golf trip")]}, config={"recursion_limit": 50}
+    ):
+        if "__end__" not in chunk:
+            print(chunk)
+            print(f"{Fore.GREEN}#############################{Style.RESET_ALL}")
