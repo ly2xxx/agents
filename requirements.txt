@@ -9,3 +9,4 @@ ipython==8.25.0
 graphviz
 markdown==3.6
 pdfkit==1.0.0
+streamlit
