@@ -97,6 +97,6 @@ async def run_research_graph(input):
             print(output_value)
         print("\n---\n")
 
-test_input = {"messages": [HumanMessage(content="Hunger Games")]}
-
-asyncio.run(run_research_graph(test_input))
+if __name__ == "__main__":
+    test_input = {"messages": [HumanMessage(content="Fast and Furious")]}
+    asyncio.run(run_research_graph(test_input))

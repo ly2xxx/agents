@@ -1,6 +1,7 @@
 import streamlit as st
 from langchain_core.messages import HumanMessage
 from multi_agent import travel_agent_graph
+from web_research import research_graph
 from io import BytesIO
 
 def main():
