@@ -7,6 +7,8 @@ from langchain.tools import tool
 from markdown import markdown
 from pydantic import BaseModel, Field
 
+import json
+
 PATH_WKHTMLTOPDF = r"C:\Soft\wkhtmltopdf\bin\wkhtmltopdf.exe"
 PDFKIT_CONFIG = pdfkit.configuration(wkhtmltopdf=PATH_WKHTMLTOPDF)
 
@@ -19,6 +21,7 @@ class MarkdownToPDFInput(BaseModel):
 
 def generate_html_text(markdown_text: str) -> str:
     """Convert markdown text to HTML text."""
+    markdown_text = json.dumps(markdown_text)
     markdown_text = markdown_text.replace("file:///", "").replace("file://", "")
     html_text = markdown(markdown_text)
     html_text = f"""
