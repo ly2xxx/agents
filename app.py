@@ -4,10 +4,23 @@ from multi_agent import travel_agent_graph
 from web_research import research_graph
 from io import BytesIO
 
+TRAVEL_AGENT = "Travel Agency"
+RESEARCH_AGENT = "Research Assistant"
+
 def main():
     st.title("Multi-agent Assistant Demo")
 
-    displayGraph(travel_agent_graph, "Travel Agent")
+    chain_selection = st.selectbox("Select assistant", [TRAVEL_AGENT, RESEARCH_AGENT])
+
+    langgraph_chain = None
+    if chain_selection == TRAVEL_AGENT:
+        langgraph_chain = travel_agent_graph
+    elif chain_selection == RESEARCH_AGENT:
+        langgraph_chain = research_graph
+    else:
+        langgraph_chain = None
+    
+    displayGraph(langgraph_chain, chain_selection)
 
     # Get user input
     user_input = st.text_area("Enter your query:")
@@ -21,7 +34,7 @@ def main():
             uploaded_files.append(file)
 
     if st.button("Submit"):
-        for chunk in travel_agent_graph.stream({"messages": [HumanMessage(content=user_input)]}):
+        for chunk in langgraph_chain.stream({"messages": [HumanMessage(content=user_input)]}):
             if "__end__" not in chunk:
                 st.write(chunk)
                 st.write("---")
