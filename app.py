@@ -1,8 +1,9 @@
 import streamlit as st
 from langchain_core.messages import HumanMessage
 from multi_agent import travel_agent_graph
-from web_research import research_graph
+from web_research import research_graph, run_research_graph
 from io import BytesIO
+import asyncio
 
 TRAVEL_AGENT = "Travel Agency"
 RESEARCH_AGENT = "Research Assistant"
@@ -34,10 +35,14 @@ def main():
             uploaded_files.append(file)
 
     if st.button("Submit"):
-        for chunk in langgraph_chain.stream({"messages": [HumanMessage(content=user_input)]}):
-            if "__end__" not in chunk:
-                st.write(chunk)
-                st.write("---")
+        query = {"messages": [HumanMessage(content=user_input)]}
+        if chain_selection == TRAVEL_AGENT:
+            for chunk in langgraph_chain.stream(query):
+                if "__end__" not in chunk:
+                    st.write(chunk)
+                    st.write("---")
+        elif chain_selection == RESEARCH_AGENT:
+            asyncio.run(run_research_graph(query))
 
 def displayGraph(chain, chain_selection):
     # Display the graph visualization

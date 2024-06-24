@@ -21,9 +21,9 @@ set_environment_variables("Web_Search_Graph")
 TAVILY_TOOL = TavilySearchResults(max_results=6)
 LLM = ChatOpenAI(model="gpt-3.5-turbo-0125")
 
-TAVILY_AGENT_NAME = "tavily_agent"
-RESEARCH_AGENT_NAME = "search_evaluator_agent"
-SAVE_FILE_NODE_NAME = "save_file"
+TAVILY_AGENT_NAME = "researcher"
+RESEARCH_AGENT_NAME = "web scraper"
+SAVE_FILE_NODE_NAME = "writer"
 
 def create_agent(llm: ChatOpenAI, tools: list, system_prompt: str):
     prompt = ChatPromptTemplate.from_messages(
