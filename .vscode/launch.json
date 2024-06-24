@@ -1,0 +1,36 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+
+
+        {
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "langgraph_agent_example.py",
+            "console": "integratedTerminal",
+            // "python": "${workspaceFolder}/venv/Scripts/python",
+            // "env": {
+            //     "PYTHONPATH": "D:/code/amazon-bedrock-custom-langchain-agent"
+            // }
+        },
+        {
+            "name": "Python:Streamlit",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "streamlit",
+            "args": [
+                 "run",
+                 "app.py",
+                 "--server.port",
+                 "8505"
+            ]
+            // "program": "${file}",
+            // "console": "integratedTerminal",
+            // "justMyCode": true
+        }
+    ]
+}

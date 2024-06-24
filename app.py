@@ -3,6 +3,7 @@ from langchain_core.messages import HumanMessage
 from multi_agent import travel_agent_graph
 from web_research import research_graph, run_research_graph
 from io import BytesIO
+from PIL import Image
 import asyncio
 
 TRAVEL_AGENT = "Travel Agency"
@@ -49,7 +50,12 @@ def displayGraph(chain, chain_selection):
     graph = chain.get_graph(xray=True)
     mermaid_png = graph.draw_mermaid_png()
     png_bytes = BytesIO(mermaid_png)
-    st.image(png_bytes, caption=chain_selection, use_column_width=True)
+    image = Image.open(png_bytes)
+
+    new_height = 460  # Desired width in pixels
+    new_width = int(new_height * image.width / image.height)  # Maintain aspect ratio
+    new_image = image.resize((new_width, new_height))
+    st.image(new_image, caption=chain_selection)#, use_column_width=True)
 
 if __name__ == "__main__":
     main()
