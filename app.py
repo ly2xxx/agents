@@ -1,7 +1,7 @@
 import streamlit as st
 from langchain_core.messages import HumanMessage
 from multi_agent import travel_agent_graph
-from web_research import research_graph, run_research_graph
+from web_research import research_graph
 from io import BytesIO
 from PIL import Image
 import asyncio
@@ -56,6 +56,14 @@ def displayGraph(chain, chain_selection):
     new_width = int(new_height * image.width / image.height)  # Maintain aspect ratio
     new_image = image.resize((new_width, new_height))
     st.image(new_image, caption=chain_selection)#, use_column_width=True)
+
+async def run_research_graph(input):
+    async for output in research_graph.astream(input):
+        for node_name, output_value in output.items():
+            st.write("---")
+            st.write(f"Output from node '{node_name}':")
+            st.write(output_value)
+        st.write("\n---\n")
 
 if __name__ == "__main__":
     main()
