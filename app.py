@@ -1,6 +1,6 @@
 import streamlit as st
 from langchain_core.messages import HumanMessage
-from multi_agent import travel_agent_graph
+from multi_agent import create_travel_agent_graph
 from web_research import create_web_research_graph
 from io import BytesIO
 from PIL import Image
@@ -16,7 +16,7 @@ def main():
 
     langgraph_chain = None
     if chain_selection == TRAVEL_AGENT:
-        langgraph_chain = travel_agent_graph
+        langgraph_chain = create_travel_agent_graph()
     elif chain_selection == RESEARCH_AGENT:
         langgraph_chain = create_web_research_graph()
     else:

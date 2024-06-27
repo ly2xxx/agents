@@ -66,85 +66,89 @@ def agent_node(state, agent, name):
     result = agent.invoke(state)
     return {"messages": [HumanMessage(content=result["output"], name=name)]}
 
-router_function_def = {
-    "name": "route",
-    "description": "Select the next role.",
-    "parameters": {
-        "title": "routeSchema",
-        "type": "object",
-        "properties": {
-            "next": {
-                "title": "next",
-                "anyOf": [
-                    {"enum": OPTIONS},
-                ],
-            }
+def create_travel_agent_graph():
+    router_function_def = {
+        "name": "route",
+        "description": "Select the next role.",
+        "parameters": {
+            "title": "routeSchema",
+            "type": "object",
+            "properties": {
+                "next": {
+                    "title": "next",
+                    "anyOf": [
+                        {"enum": OPTIONS},
+                    ],
+                }
+            },
+            "required": ["next"],
         },
-        "required": ["next"],
-    },
-}
+    }
 
-# The first is the TEAM_SUPERVISOR_SYSTEM_PROMPT we defined in the multi_agent_prompts.py file. 
-# The second is a MessagesPlaceholder for the messages variable 
-# and the third is a short system message that reminds the team supervisor what it’s task is and what options it has available to choose from.
-# we use the join method on the OPTIONS and MEMBERS lists to turn them into a single string with the members separated by a comma and a space as we cannot pass list variables to LLMs.
-team_supervisor_prompt_template = ChatPromptTemplate.from_messages(
-    [
-        ("system", TEAM_SUPERVISOR_SYSTEM_PROMPT),
-        MessagesPlaceholder(variable_name="messages"),
-        (
-            "system",
-            "Given the conversation above, who should act next?"
-            " Or should we FINISH? Select one of: {options}",
-        ),
-    ]
-).partial(options=", ".join(OPTIONS), members=", ".join(MEMBERS))
+    # The first is the TEAM_SUPERVISOR_SYSTEM_PROMPT we defined in the multi_agent_prompts.py file. 
+    # The second is a MessagesPlaceholder for the messages variable 
+    # and the third is a short system message that reminds the team supervisor what it’s task is and what options it has available to choose from.
+    # we use the join method on the OPTIONS and MEMBERS lists to turn them into a single string with the members separated by a comma and a space as we cannot pass list variables to LLMs.
+    team_supervisor_prompt_template = ChatPromptTemplate.from_messages(
+        [
+            ("system", TEAM_SUPERVISOR_SYSTEM_PROMPT),
+            MessagesPlaceholder(variable_name="messages"),
+            (
+                "system",
+                "Given the conversation above, who should act next?"
+                " Or should we FINISH? Select one of: {options}",
+            ),
+        ]
+    ).partial(options=", ".join(OPTIONS), members=", ".join(MEMBERS))
 
-# So we simply define the team_supervisor_chain as the prompt template we just made for it, then we pipe that into the LLM, and pipe that into a JsonOutputFunctionsParser. As we’re using a function here we can use the JSON output parser to extract the next property from the arguments the LLM provides for us.
-team_supervisor_chain = (
-    team_supervisor_prompt_template
-    | LLM.bind_functions(functions=[router_function_def], function_call="route")
-    | JsonOutputFunctionsParser()
-)
+    # So we simply define the team_supervisor_chain as the prompt template we just made for it, then we pipe that into the LLM, and pipe that into a JsonOutputFunctionsParser. As we’re using a function here we can use the JSON output parser to extract the next property from the arguments the LLM provides for us.
+    team_supervisor_chain = (
+        team_supervisor_prompt_template
+        | LLM.bind_functions(functions=[router_function_def], function_call="route")
+        | JsonOutputFunctionsParser()
+    )
 
-travel_agent = create_agent(LLM, [TAVILY_TOOL], TRAVEL_AGENT_SYSTEM_PROMPT)
-# To get the travel agent’s node we need to use the agent_node function we defined before, which needs three arguments, the agent, the state and the name of the agent in string format. We have the agent and the name already, but the state will only be available at runtime. To solve this problem we can use the functools.partial function to create a new function that has the agent and name already filled in, and then we can pass in the state at runtime.
-travel_agent_node = functools.partial(
-    agent_node, agent=travel_agent, name=TRAVEL_AGENT_NAME
-)
+    travel_agent = create_agent(LLM, [TAVILY_TOOL], TRAVEL_AGENT_SYSTEM_PROMPT)
+    # To get the travel agent’s node we need to use the agent_node function we defined before, which needs three arguments, the agent, the state and the name of the agent in string format. We have the agent and the name already, but the state will only be available at runtime. To solve this problem we can use the functools.partial function to create a new function that has the agent and name already filled in, and then we can pass in the state at runtime.
+    travel_agent_node = functools.partial(
+        agent_node, agent=travel_agent, name=TRAVEL_AGENT_NAME
+    )
 
-language_assistant = create_agent(LLM, [TAVILY_TOOL], LANGUAGE_ASSISTANT_SYSTEM_PROMPT)
-language_assistant_node = functools.partial(
-    agent_node, agent=language_assistant, name=LANGUAGE_ASSISTANT_NAME
-)
+    language_assistant = create_agent(LLM, [TAVILY_TOOL], LANGUAGE_ASSISTANT_SYSTEM_PROMPT)
+    language_assistant_node = functools.partial(
+        agent_node, agent=language_assistant, name=LANGUAGE_ASSISTANT_NAME
+    )
 
-visualizer = create_agent(LLM, [generate_image], VISUALIZER_SYSTEM_PROMPT)
-visualizer_node = functools.partial(agent_node, agent=visualizer, name=VISUALIZER_NAME)
+    visualizer = create_agent(LLM, [generate_image], VISUALIZER_SYSTEM_PROMPT)
+    visualizer_node = functools.partial(agent_node, agent=visualizer, name=VISUALIZER_NAME)
 
-designer = create_agent(LLM, [markdown_to_pdf_file], DESIGNER_SYSTEM_PROMPT)
-designer_node = functools.partial(agent_node, agent=designer, name=DESIGNER_NAME)
+    designer = create_agent(LLM, [markdown_to_pdf_file], DESIGNER_SYSTEM_PROMPT)
+    designer_node = functools.partial(agent_node, agent=designer, name=DESIGNER_NAME)
 
-workflow = StateGraph(AgentState)
-workflow.add_node(TRAVEL_AGENT_NAME, travel_agent_node)
-workflow.add_node(LANGUAGE_ASSISTANT_NAME, language_assistant_node)
-workflow.add_node(VISUALIZER_NAME, visualizer_node)
-workflow.add_node(DESIGNER_NAME, designer_node)
-workflow.add_node(TEAM_SUPERVISOR_NAME, team_supervisor_chain)
+    workflow = StateGraph(AgentState)
+    workflow.add_node(TRAVEL_AGENT_NAME, travel_agent_node)
+    workflow.add_node(LANGUAGE_ASSISTANT_NAME, language_assistant_node)
+    workflow.add_node(VISUALIZER_NAME, visualizer_node)
+    workflow.add_node(DESIGNER_NAME, designer_node)
+    workflow.add_node(TEAM_SUPERVISOR_NAME, team_supervisor_chain)
 
-for member in MEMBERS:
-    workflow.add_edge(member, TEAM_SUPERVISOR_NAME)
+    for member in MEMBERS:
+        workflow.add_edge(member, TEAM_SUPERVISOR_NAME)
 
-workflow.add_edge(DESIGNER_NAME, END)
+    workflow.add_edge(DESIGNER_NAME, END)
 
-conditional_map = {name: name for name in MEMBERS}
-conditional_map["FINISH"] = DESIGNER_NAME
-workflow.add_conditional_edges(
-    TEAM_SUPERVISOR_NAME, lambda x: x["next"], conditional_map
-)
+    conditional_map = {name: name for name in MEMBERS}
+    conditional_map["FINISH"] = DESIGNER_NAME
+    workflow.add_conditional_edges(
+        TEAM_SUPERVISOR_NAME, lambda x: x["next"], conditional_map
+    )
 
-workflow.set_entry_point(TEAM_SUPERVISOR_NAME)
+    workflow.set_entry_point(TEAM_SUPERVISOR_NAME)
 
-travel_agent_graph = workflow.compile()
+    travel_agent_graph = workflow.compile()
+    return travel_agent_graph
+
+travel_agent_graph = create_travel_agent_graph()
 
 if __name__ == "__main__":
     for chunk in travel_agent_graph.stream(
