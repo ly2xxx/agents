@@ -1,7 +1,7 @@
 import streamlit as st
 from langchain_core.messages import HumanMessage
 from multi_agent import travel_agent_graph
-from web_research import research_graph
+from web_research import create_web_research_graph
 from io import BytesIO
 from PIL import Image
 import asyncio
@@ -18,7 +18,7 @@ def main():
     if chain_selection == TRAVEL_AGENT:
         langgraph_chain = travel_agent_graph
     elif chain_selection == RESEARCH_AGENT:
-        langgraph_chain = research_graph
+        langgraph_chain = create_web_research_graph()
     else:
         langgraph_chain = None
     
@@ -43,7 +43,7 @@ def main():
                     st.write(chunk)
                     st.write("---")
         elif chain_selection == RESEARCH_AGENT:
-            asyncio.run(run_research_graph(query))
+            asyncio.run(run_research_graph(query, langgraph_chain))
 
 def displayGraph(chain, chain_selection):
     # Display the graph visualization
@@ -57,8 +57,8 @@ def displayGraph(chain, chain_selection):
     new_image = image.resize((new_width, new_height))
     st.image(new_image, caption=chain_selection)#, use_column_width=True)
 
-async def run_research_graph(input):
-    async for output in research_graph.astream(input):
+async def run_research_graph(input, chain):
+    async for output in chain.astream(input):
         for node_name, output_value in output.items():
             st.write("---")
             st.write(f"Output from node '{node_name}':")

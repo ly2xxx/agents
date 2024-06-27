@@ -49,16 +49,8 @@ async def async_agent_node(state: AgentState, agent, name):
     result = await agent.ainvoke(state)
     return {"messages": [HumanMessage(content=result["output"], name=name)]}
 
-tavily_agent = create_agent(LLM, [TAVILY_TOOL], TAVILY_AGENT_SYSTEM_PROMPT)
-tavily_agent_node = functools.partial(
-    agent_node, agent=tavily_agent, name=TAVILY_AGENT_NAME
-)
 
 
-research_agent = create_agent(LLM, [research], RESEARCHER_SYSTEM_PROMPT)
-research_agent_node = functools.partial(
-    async_agent_node, agent=research_agent, name=RESEARCH_AGENT_NAME
-)
 
 # This shows that the graph is really nothing but a state machine. We can just write any arbitrary function and use it as a node as long as we meet the conditions we set for the graph. The function takes the AgentState object as input, does whatever it wants to do, and then adds an update to the AgentState object as promised. It doesn’t matter that there is no agent or LLM in this step.
 
@@ -77,17 +69,31 @@ def save_file_node(state: AgentState):
         ]
     }
 
-workflow = StateGraph(AgentState)
-workflow.add_node(TAVILY_AGENT_NAME, tavily_agent_node)
-workflow.add_node(RESEARCH_AGENT_NAME, research_agent_node)
-workflow.add_node(SAVE_FILE_NODE_NAME, save_file_node)
+def create_web_research_graph():
+    tavily_agent = create_agent(LLM, [TAVILY_TOOL], TAVILY_AGENT_SYSTEM_PROMPT)
+    tavily_agent_node = functools.partial(
+        agent_node, agent=tavily_agent, name=TAVILY_AGENT_NAME
+    )
 
-workflow.add_edge(TAVILY_AGENT_NAME, RESEARCH_AGENT_NAME)
-workflow.add_edge(RESEARCH_AGENT_NAME, SAVE_FILE_NODE_NAME)
-workflow.add_edge(SAVE_FILE_NODE_NAME, END)
+    research_agent = create_agent(LLM, [research], RESEARCHER_SYSTEM_PROMPT)
+    research_agent_node = functools.partial(
+        async_agent_node, agent=research_agent, name=RESEARCH_AGENT_NAME
+    )
 
-workflow.set_entry_point(TAVILY_AGENT_NAME)
-research_graph = workflow.compile()
+    workflow = StateGraph(AgentState)
+    workflow.add_node(TAVILY_AGENT_NAME, tavily_agent_node)
+    workflow.add_node(RESEARCH_AGENT_NAME, research_agent_node)
+    workflow.add_node(SAVE_FILE_NODE_NAME, save_file_node)
+
+    workflow.add_edge(TAVILY_AGENT_NAME, RESEARCH_AGENT_NAME)
+    workflow.add_edge(RESEARCH_AGENT_NAME, SAVE_FILE_NODE_NAME)
+    workflow.add_edge(SAVE_FILE_NODE_NAME, END)
+
+    workflow.set_entry_point(TAVILY_AGENT_NAME)
+    research_graph = workflow.compile()
+    return research_graph
+
+research_graph = create_web_research_graph()
 
 async def run_research_graph(input):
     async for output in research_graph.astream(input):
