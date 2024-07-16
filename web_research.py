@@ -11,6 +11,8 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, StateGraph
 
+from tools import * 
+
 from setup_environment import set_environment_variables
 from tools.pdf import OUTPUT_DIRECTORY
 from tools.web import research
@@ -21,6 +23,7 @@ set_environment_variables("Web_Search_Graph")
 TAVILY_TOOL = TavilySearchResults(max_results=6)
 LLM = ChatOpenAI(model="gpt-3.5-turbo-0125")
 
+RAG_AGENT_NAME = "rag"
 TAVILY_AGENT_NAME = "researcher"
 RESEARCH_AGENT_NAME = "web scraper"
 SAVE_FILE_NODE_NAME = "writer"
@@ -86,6 +89,7 @@ def create_web_research_graph():
     workflow.add_node(SAVE_FILE_NODE_NAME, save_file_node)
 
     workflow.add_edge(TAVILY_AGENT_NAME, RESEARCH_AGENT_NAME)
+    # workflow.add_edge(TAVILY_AGENT_NAME, SAVE_FILE_NODE_NAME) # for demo
     workflow.add_edge(RESEARCH_AGENT_NAME, SAVE_FILE_NODE_NAME)
     workflow.add_edge(SAVE_FILE_NODE_NAME, END)
 
