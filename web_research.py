@@ -21,7 +21,7 @@ from web_research_prompts import RESEARCHER_SYSTEM_PROMPT, TAVILY_AGENT_SYSTEM_P
 set_environment_variables("Web_Search_Graph")
 
 TAVILY_TOOL = TavilySearchResults(max_results=6)
-LLM = ChatOpenAI(model="gpt-3.5-turbo-0125")
+LLM = ChatOpenAI(model="gpt-4o-mini-2024-07-18")
 
 RAG_AGENT_NAME = "rag"
 TAVILY_AGENT_NAME = "researcher"

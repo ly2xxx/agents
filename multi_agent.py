@@ -38,7 +38,7 @@ MEMBERS = [TRAVEL_AGENT_NAME, LANGUAGE_ASSISTANT_NAME, VISUALIZER_NAME]
 OPTIONS = ["FINISH"] + MEMBERS
 
 TAVILY_TOOL = TavilySearchResults()
-LLM = ChatOpenAI(model="gpt-3.5-turbo-0125")
+LLM = ChatOpenAI(model="gpt-4o-mini-2024-07-18")
 
 # We define a function named create_agent which takes an llm of the type BaseChatModel. This is just a type hint but it was part of our imports for clarity. BaseChatModel is the base class for all chat models in LangChain, including the ChatOpenAI variation we use here. You can pass any LLM you want and have different nodes of the same graph run on completely different LLMs. The other arguments are a list of tools and a system_prompt string.
 def create_agent(llm: BaseChatModel, tools: list, system_prompt: str):
