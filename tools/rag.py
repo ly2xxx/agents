@@ -1,9 +1,12 @@
 from langchain.tools import tool
 from pydantic import BaseModel, Field
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import Chroma
+# from langchain.embeddings import OpenAIEmbeddings
+from langchain.embeddings.openai import OpenAIEmbeddings
+# from langchain.vectorstores import Chroma
+from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.document_loaders import PyPDFLoader
+import logging
 import os
 
 class RAGInput(BaseModel):
@@ -24,7 +27,8 @@ def rag_query(query: str, pdf_path: str) -> str:
 
     # Create embeddings and load them into Chroma
     embeddings = OpenAIEmbeddings()
-    db = Chroma.from_documents(texts, embeddings)
+    # db = Chroma.from_documents(texts, embeddings)
+    db = FAISS.from_documents(texts, embeddings)
 
     # Perform similarity search
     docs = db.similarity_search(query)
@@ -37,6 +41,8 @@ def rag_query(query: str, pdf_path: str) -> str:
     return response
 
 if __name__ == "__main__":
+    #Enable logging
+    logging.basicConfig(level=logging.INFO)
     pdf_path = "D:\code\langgraph_agents\output\Glasgow-1day.pdf"
     query = "What is the main topic of this document?"
     print(rag_query.run({"query": query, "pdf_path": pdf_path}))
