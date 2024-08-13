@@ -17,7 +17,7 @@ from tools import *
 from setup_environment import set_environment_variables
 from tools.pdf import OUTPUT_DIRECTORY
 from tools.web import research
-from web_research_prompts import RESEARCHER_SYSTEM_PROMPT, TAVILY_AGENT_SYSTEM_PROMPT
+from web_research_prompts import RESEARCHER_SYSTEM_PROMPT, TAVILY_AGENT_SYSTEM_PROMPT, RAG_SYSTEM_PROMPT
 
 set_environment_variables("Web_Search_Graph")
 
@@ -77,6 +77,9 @@ def save_file_node(state: AgentState):
     }
 
 def create_web_research_graph():
+    rag_agent = create_agent(LLM, [rag_query], RAG_SYSTEM_PROMPT)
+    rag_agent_node = functools.partial(agent_node, agent=rag_agent, name=RAG_AGENT_NAME)
+
     tavily_agent = create_agent(LLM, [TAVILY_TOOL], TAVILY_AGENT_SYSTEM_PROMPT)
     tavily_agent_node = functools.partial(
         agent_node, agent=tavily_agent, name=TAVILY_AGENT_NAME
@@ -88,16 +91,18 @@ def create_web_research_graph():
     )
 
     workflow = StateGraph(AgentState)
+    workflow.add_node(RAG_AGENT_NAME, rag_agent_node)
     workflow.add_node(TAVILY_AGENT_NAME, tavily_agent_node)
     workflow.add_node(RESEARCH_AGENT_NAME, research_agent_node)
     workflow.add_node(SAVE_FILE_NODE_NAME, save_file_node)
 
+    workflow.add_edge(RAG_AGENT_NAME, TAVILY_AGENT_NAME)
     workflow.add_edge(TAVILY_AGENT_NAME, RESEARCH_AGENT_NAME)
     # workflow.add_edge(TAVILY_AGENT_NAME, SAVE_FILE_NODE_NAME) # for demo
     workflow.add_edge(RESEARCH_AGENT_NAME, SAVE_FILE_NODE_NAME)
     workflow.add_edge(SAVE_FILE_NODE_NAME, END)
 
-    workflow.set_entry_point(TAVILY_AGENT_NAME)
+    workflow.set_entry_point(RAG_AGENT_NAME)
     research_graph = workflow.compile()
     return research_graph
 
@@ -112,7 +117,15 @@ async def run_research_graph(input):
         print("\n---\n")
 
 if __name__ == "__main__":
-    test_input = {"messages": [HumanMessage(content="Neo4j graph databases")]}
+    # test_input = {"messages": [HumanMessage(content="Neo4j graph databases")]}
+    pdf_path = "D:\code\langgraph_agents\output\Glasgow-1day.pdf"
+    query = "What can I do in Glasgow in 1 day?"
+    # test_input = {"query": [HumanMessage(content=query)], "pdf_path": [HumanMessage(content=pdf_path)]}
+    test_input = {
+        "messages": [
+            HumanMessage(content=f"Query: {query}\nPDF Path: {pdf_path}")
+        ]
+    }
     logging.info("Starting research graph with test input")
     asyncio.run(run_research_graph(test_input))
     logging.info("Research graph completed")
