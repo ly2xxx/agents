@@ -76,7 +76,7 @@ def save_file_node(state: AgentState):
         ]
     }
 
-def create_web_research_graph():
+def create_web_research_rag_graph():
     rag_agent = create_agent(LLM, [rag_query], RAG_SYSTEM_PROMPT)
     rag_agent_node = functools.partial(agent_node, agent=rag_agent, name=RAG_AGENT_NAME)
 
@@ -106,7 +106,7 @@ def create_web_research_graph():
     research_graph = workflow.compile()
     return research_graph
 
-research_graph = create_web_research_graph()
+research_graph = create_web_research_rag_graph()
 
 async def run_research_graph(input):
     async for output in research_graph.astream(input):

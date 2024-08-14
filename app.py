@@ -2,23 +2,27 @@ import streamlit as st
 from langchain_core.messages import HumanMessage
 from multi_agent import create_travel_agent_graph
 from web_research import create_web_research_graph
+from web_research_rag import create_web_research_rag_graph
 from io import BytesIO
 from PIL import Image
 import asyncio
 
 TRAVEL_AGENT = "Travel Agency"
 RESEARCH_AGENT = "Research Assistant"
+RAG_RESEARCH_AGENT = "RAG Research Assistant"
 
 def main():
     st.title("Multi-agent Assistant Demo")
 
-    chain_selection = st.selectbox("Select assistant", [TRAVEL_AGENT, RESEARCH_AGENT])
+    chain_selection = st.selectbox("Select assistant", [TRAVEL_AGENT, RESEARCH_AGENT, RAG_RESEARCH_AGENT])
 
     langgraph_chain = None
     if chain_selection == TRAVEL_AGENT:
         langgraph_chain = create_travel_agent_graph()
     elif chain_selection == RESEARCH_AGENT:
         langgraph_chain = create_web_research_graph()
+    elif chain_selection == RAG_RESEARCH_AGENT:
+        langgraph_chain = create_web_research_rag_graph()
     else:
         langgraph_chain = None
     
@@ -44,6 +48,8 @@ def main():
                     st.write("---")
         elif chain_selection == RESEARCH_AGENT:
             asyncio.run(run_research_graph(query, langgraph_chain))
+        elif chain_selection == RAG_RESEARCH_AGENT:
+            asyncio.run(run_research_graph({"messages": [HumanMessage(content=user_input)], "files": uploaded_files}, langgraph_chain))
 
 def displayGraph(chain, chain_selection):
     # Display the graph visualization
