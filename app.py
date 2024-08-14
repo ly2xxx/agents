@@ -6,6 +6,8 @@ from web_research_rag import create_web_research_rag_graph
 from io import BytesIO
 from PIL import Image
 import asyncio
+import tempfile
+import os
 
 TRAVEL_AGENT = "Travel Agency"
 RESEARCH_AGENT = "Research Assistant"
@@ -49,7 +51,14 @@ def main():
         elif chain_selection == RESEARCH_AGENT:
             asyncio.run(run_research_graph(query, langgraph_chain))
         elif chain_selection == RAG_RESEARCH_AGENT:
-            asyncio.run(run_research_graph({"messages": [HumanMessage(content=user_input)], "files": uploaded_files}, langgraph_chain))
+            # Save the uploaded file to a temporary location
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
+                temp_file.write(uploaded_files[0].read())
+                temp_file_path = temp_file.name
+            # Use the temporary file path in the function call
+            asyncio.run(run_research_graph({"messages": [HumanMessage(content=f"Query: {user_input}\nPDF Path: {temp_file_path}")]}, langgraph_chain))
+            # Clean up the temporary file after use
+            os.unlink(temp_file_path)
 
 def displayGraph(chain, chain_selection):
     # Display the graph visualization
