@@ -117,10 +117,9 @@ async def run_research_graph(input):
         print("\n---\n")
 
 if __name__ == "__main__":
-    # test_input = {"messages": [HumanMessage(content="Neo4j graph databases")]}
-    pdf_path = "D:\code\langgraph_agents\output\Glasgow-1day.pdf"
-    query = "What can I do in Glasgow in 1 day?"
-    # test_input = {"query": [HumanMessage(content=query)], "pdf_path": [HumanMessage(content=pdf_path)]}
+    query = "Help me plan a 2-days trip including Bradford, Carlisles and the castles on the way from Bradford to Carlisles?"
+    pdf_path = "D:\code\langgraph_agents\output\Bradford-1day.pdf, D:\code\langgraph_agents\output\Bradford-to-Carlisle_castles.pdf"
+    
     test_input = {
         "messages": [
             HumanMessage(content=f"Query: {query}\nPDF Path: {pdf_path}")
