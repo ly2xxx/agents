@@ -33,13 +33,14 @@ def main():
     # Get user input
     user_input = st.text_area("Enter your query:")
 
-    # File picker
-    uploaded_files = []
-    num_files = st.number_input("Pick your file(s) - Number of files to upload", min_value=1, value=1, step=1)
-    for i in range(num_files):
-        file = st.file_uploader(f"Choose file {i+1}", type=["pdf", "txt", "docx"], key=f"file_{i}")
-        if file:
-            uploaded_files.append(file)
+    # File picker (only shown for RAG_RESEARCH_AGENT)
+    if chain_selection == RAG_RESEARCH_AGENT:
+        uploaded_files = []
+        num_files = st.number_input("Pick your file(s) - Number of files to upload", min_value=1, value=1, step=1)
+        for i in range(num_files):
+            file = st.file_uploader(f"Choose file {i+1}", type=["pdf", "txt", "md"], key=f"file_{i}")
+            if file:
+                uploaded_files.append(file)
 
     if st.button("Submit"):
         query = {"messages": [HumanMessage(content=user_input)]}
