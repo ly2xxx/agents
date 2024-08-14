@@ -51,14 +51,20 @@ def main():
         elif chain_selection == RESEARCH_AGENT:
             asyncio.run(run_research_graph(query, langgraph_chain))
         elif chain_selection == RAG_RESEARCH_AGENT:
-            # Save the uploaded file to a temporary location
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
-                temp_file.write(uploaded_files[0].read())
-                temp_file_path = temp_file.name
+            # Save all uploaded files to temporary locations
+            temp_file_paths = []
+            for uploaded_file in uploaded_files:
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
+                    temp_file.write(uploaded_file.read())
+                    temp_file_paths.append(temp_file.name)
+
+            # Convert the list of file paths to a comma-delimited string
+            temp_file_path = ','.join(temp_file_paths)
             # Use the temporary file path in the function call
             asyncio.run(run_research_graph({"messages": [HumanMessage(content=f"Query: {user_input}\nPDF Path: {temp_file_path}")]}, langgraph_chain))
-            # Clean up the temporary file after use
-            os.unlink(temp_file_path)
+            # Clean up the temporary files after use
+            for path in temp_file_paths:
+                os.unlink(path)
 
 def displayGraph(chain, chain_selection):
     # Display the graph visualization
