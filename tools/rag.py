@@ -5,36 +5,37 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 # from langchain.vectorstores import Chroma
 from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.document_loaders import PyPDFLoader
+from langchain.document_loaders import PyPDFLoader, TextLoader
 import logging
-import os
 
 class RAGInput(BaseModel):
     query: str = Field(description="The question to be answered using the RAG system.")
-    pdf_path: str = Field(description="Path to the PDF file to be used as the knowledge base.")
+    file_path: str = Field(description="Path to the file to be used as the knowledge base.")
 
 @tool("rag_query", args_schema=RAGInput)
-def rag_query(query: str, pdf_path: str) -> str:
-    """Query a PDF document using RAG (Retrieval-Augmented Generation)."""
+def rag_query(query: str, file_path: str) -> str:
+    """Query a PDF or Markdown document using RAG (Retrieval-Augmented Generation)."""
     
-    # Load the PDF
-    loader = PyPDFLoader(pdf_path)
-    pages = loader.load_and_split()
+    # Determine file type and load accordingly
+    if file_path.lower().endswith('.pdf'):
+        loader = PyPDFLoader(file_path)
+        pages = loader.load_and_split()
+    elif file_path.lower().endswith('.md') or file_path.lower().endswith('.txt'):
+        loader = TextLoader(file_path)
+        pages = loader.load()
+    else:
+        raise ValueError("Unsupported file type. Please provide a PDF or Markdown txt file.")
 
-    # Split the text into chunks
+    # Rest of the function remains the same
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
     texts = text_splitter.split_documents(pages)
 
-    # Create embeddings and load them into Chroma
     embeddings = OpenAIEmbeddings()
-    # db = Chroma.from_documents(texts, embeddings)
     db = FAISS.from_documents(texts, embeddings)
 
-    # Perform similarity search
     docs = db.similarity_search(query)
 
-    # Format the response
-    response = f"Based on the PDF content, here's the relevant information:\n\n"
+    response = f"Based on the document content, here's the relevant information:\n\n"
     for doc in docs:
         response += f"{doc.page_content}\n\n"
 
@@ -43,6 +44,13 @@ def rag_query(query: str, pdf_path: str) -> str:
 if __name__ == "__main__":
     #Enable logging
     logging.basicConfig(level=logging.INFO)
+    
+    # Example with PDF
     pdf_path = "D:\code\langgraph_agents\output\Glasgow-1day.pdf"
-    query = "What is the main topic of this document?"
-    print(rag_query.run({"query": query, "pdf_path": pdf_path}))
+    pdf_query = "What is the main topic of this document?"
+    print(rag_query.run({"query": pdf_query, "file_path": pdf_path}))
+
+    # Example with Markdown
+    md_path = "D:\code\langgraph_agents\output\DDDvsTDD.md"
+    md_query = "Summarize the content of this Markdown file."
+    print(rag_query.run({"query": md_query, "file_path": md_path}))

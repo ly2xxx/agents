@@ -118,11 +118,11 @@ async def run_research_graph(input):
 
 if __name__ == "__main__":
     query = "Help me plan a 2-days trip including Bradford, Carlisles and the castles on the way from Bradford to Carlisles?"
-    pdf_path = "D:\code\langgraph_agents\output\Bradford-1day.pdf, D:\code\langgraph_agents\output\Bradford-to-Carlisle_castles.pdf"
+    file_path = "D:\code\langgraph_agents\output\Bradford-1day.pdf, D:\code\langgraph_agents\output\Bradford-Carlisle-2days-Itinerary.md"
     
     test_input = {
         "messages": [
-            HumanMessage(content=f"Query: {query}\nPDF Path: {pdf_path}")
+            HumanMessage(content=f"Query: {query}\nFile Path: {file_path}")
         ]
     }
     logging.info("Starting research graph with test input")

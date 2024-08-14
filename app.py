@@ -12,6 +12,7 @@ import os
 TRAVEL_AGENT = "Travel Agency"
 RESEARCH_AGENT = "Research Assistant"
 RAG_RESEARCH_AGENT = "RAG Research Assistant"
+SUPPORT_TYPES = ["pdf", "txt", "md"]
 
 def main():
     st.title("Multi-agent Assistant Demo")
@@ -38,7 +39,7 @@ def main():
         uploaded_files = []
         num_files = st.number_input("Pick your file(s) - files for Retrieval Augmented Query", min_value=1, value=1, step=1)
         for i in range(num_files):
-            file = st.file_uploader(f"Choose file {i+1}", type=["pdf", "txt", "md"], key=f"file_{i}")
+            file = st.file_uploader(f"Choose file {i+1}", type=SUPPORT_TYPES, key=f"file_{i}")
             if file:
                 uploaded_files.append(file)
 
@@ -54,15 +55,20 @@ def main():
         elif chain_selection == RAG_RESEARCH_AGENT:
             # Save all uploaded files to temporary locations
             temp_file_paths = []
+            suffixes = ['.' + file_type for file_type in SUPPORT_TYPES]
             for uploaded_file in uploaded_files:
-                with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
-                    temp_file.write(uploaded_file.read())
-                    temp_file_paths.append(temp_file.name)
+                file_suffix = os.path.splitext(uploaded_file.name)[1].lower()
+                if file_suffix in suffixes:
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=file_suffix) as temp_file:
+                        temp_file.write(uploaded_file.read())
+                        temp_file_paths.append(temp_file.name)
+                else:
+                    st.warning(f"File type {file_suffix} not supported. Supported types: {','.join(SUPPORT_TYPES)}")
 
             # Convert the list of file paths to a comma-delimited string
             temp_file_path = ','.join(temp_file_paths)
             # Use the temporary file path in the function call
-            asyncio.run(run_research_graph({"messages": [HumanMessage(content=f"Query: {user_input}\nPDF Path: {temp_file_path}")]}, langgraph_chain))
+            asyncio.run(run_research_graph({"messages": [HumanMessage(content=f"Query: {user_input}\nFile Path: {temp_file_path}")]}, langgraph_chain))
             # Clean up the temporary files after use
             for path in temp_file_paths:
                 os.unlink(path)
