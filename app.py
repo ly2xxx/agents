@@ -1,8 +1,9 @@
 import streamlit as st
 from langchain_core.messages import HumanMessage
 from multi_agent import create_travel_agent_graph
-from web_research import create_web_research_graph
-from web_research_rag import create_web_research_rag_graph
+# from web_research import create_web_research_graph
+# from web_research_rag import create_web_research_rag_graph
+from web_research_consolidated import WebResearchGraph
 from io import BytesIO
 from PIL import Image
 import asyncio
@@ -18,14 +19,15 @@ def main():
     st.title("Multi-agent Assistant Demo")
 
     chain_selection = st.selectbox("Select assistant", [TRAVEL_AGENT, RESEARCH_AGENT, RAG_RESEARCH_AGENT])
+    web_research = WebResearchGraph()
 
     langgraph_chain = None
     if chain_selection == TRAVEL_AGENT:
         langgraph_chain = create_travel_agent_graph()
     elif chain_selection == RESEARCH_AGENT:
-        langgraph_chain = create_web_research_graph()
+        langgraph_chain = web_research.create_web_research_graph()
     elif chain_selection == RAG_RESEARCH_AGENT:
-        langgraph_chain = create_web_research_rag_graph()
+        langgraph_chain = web_research.create_web_research_rag_graph()
     else:
         langgraph_chain = None
     
