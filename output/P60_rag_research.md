@@ -110,4 +110,6 @@ URL: https://www.gizchina.com/2024/06/11/seamless-google-experience-on-huawei-ph
 URL: https://eightify.app/media/how-to-install-google-play-on-huawei-p60-pro-using-gbox-and - fetched successfully.
 URL: https://medium.com/@gostart/how-to-get-huawei-p60-pro-google-services-4c03474cbcf9 - fetched successfully.
 URL: https://itechify.com/2024/01/16/install-google-apps-huawei-devices-emui-13-1-microg/ - fetched successfully.
-URL: https://consumer.huawei.com/za/community/details/GUIDE-HERE-S-HOW-TO-RUN-GOOGLE-APPS-ON-HUAWEI-PHONES/topicId-260771/ - fetched successfully.
+URL: https://consumer.huawei.com/za/community/details/GUIDE-HERE-S-HOW-TO-RUN-GOOGLE-APPS-ON-HUAWEI-PHONES/topicId-260771/ - fetched successfully.#
+
+https://gboxlab.com
