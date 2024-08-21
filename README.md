@@ -6,3 +6,5 @@ poc of langgraph based agents
 ![alt text](image-2.png)
 
 Inspired by online tutorial - https://blog.finxter.com/building-complex-multi-agent-teams-and-setups-with-langgraph/
+Other projects inspiration:
+https://github.com/kturung/langgraph_streamlit_codeassistant/
