@@ -90,9 +90,22 @@ For more detailed security practices, refer to the [Streamlit Trust and Security
 
 With various free options available for hosting Streamlit applications, developers can choose a platform that best fits their needs. Whether using the Streamlit Community Cloud for seamless integration with GitHub or exploring alternatives like Replit or Deta, sharing interactive data applications has never been easier. By embedding these apps into websites via iframe or oEmbed, developers can maximize their outreach and user interaction.
 
-URL: https://blog.streamlit.io/host-your-streamlit-app-for-free/ - fetched successfully.
-URL: https://blog.streamlit.io/how-to-build-streamlit-apps-on-replit/ - fetched successfully.
-URL: https://anvil.works/articles/4-alternatives-streamlit - fetched successfully.
-URL: https://www.restack.io/docs/streamlit-knowledge-embed-streamlit-app-website - fetched successfully.
+
+
+1.Streamlit Community Cloud - Free Service Overview: Offers a comprehensive look at the free features and benefits of using Streamlit Community Cloud.
 URL: https://www.restack.io/docs/streamlit-knowledge-is-streamlit-community-cloud-free - fetched successfully.
+
+2.Deploying Streamlit Applications with GitHub: This resource outlines the steps to deploy a Streamlit application for free using GitHub and Streamlit Community Cloud.
+URL: https://blog.streamlit.io/host-your-streamlit-app-for-free/ - fetched successfully.
+
+3.4 Streamlit Alternatives for Building Python Data Apps: Compares various free hosting options for Streamlit applications with a focus on their pros and cons.
+URL: https://anvil.works/articles/4-alternatives-streamlit - fetched successfully.
+
+4.Embedding a Streamlit App Using Iframe: Provides guidance on how to embed a Streamlit app using iframe on a free hosting platform.
+URL: https://www.restack.io/docs/streamlit-knowledge-embed-streamlit-app-website - fetched successfully.
+
+5.Tutorial on Deploying Streamlit Apps on Replit: A detailed tutorial on how to deploy a Streamlit app for free using platforms like Replit.
+URL: https://blog.streamlit.io/how-to-build-streamlit-apps-on-replit/ - fetched successfully.
+
+6.Streamlit Security Features on Free Platforms: Discusses the security features available when hosting Streamlit apps on platforms like Streamlit Community Cloud.
 URL: https://docs.streamlit.io/deploy/streamlit-community-cloud/get-started/trust-and-security - fetched successfully.
