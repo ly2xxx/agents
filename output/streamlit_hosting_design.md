@@ -56,6 +56,7 @@ For a comprehensive tutorial, check out the [Replit guide](https://blog.streamli
 
 ### Anvil
 Anvil allows users to build and deploy full-stack web applications using Python. It features a drag-and-drop interface for UI design and provides free hosting for basic applications.
+https://prime-foolhardy-brave.anvil.app/
 
 ## 4. Embedding Streamlit Apps
 
