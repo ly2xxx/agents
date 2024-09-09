@@ -1,0 +1,4 @@
+OPENAI_API_KEY=sk-(mandatory)
+LANGCHAIN_API_KEY=lsv2_(optional)
+WEATHER_API_KEY=(optional)
+TAVILY_API_KEY=tvly-(mandatory)

@@ -10,8 +10,8 @@ Other projects inspiration:
 https://github.com/kturung/langgraph_streamlit_codeassistant/
 https://github.com/msamwelmollel/ML-CLUB-2024-Eagle-Labs
 
-*Create a .env file with following keys:
+**Rename `.env Example` to `.env` and fill all the values**
 OPENAI_API_KEY=(mandatory)
-LANGCHAIN_API_KEY=(mandatory)
+LANGCHAIN_API_KEY=(optional-recommend)
 WEATHER_API_KEY=(optional)
 TAVILY_API_KEY=(mandatory)
