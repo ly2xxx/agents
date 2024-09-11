@@ -18,4 +18,6 @@ def set_environment_variables(project_name: str = "") -> None:
     os.environ["TAVILY_API_KEY"] = str(config("TAVILY_API_KEY"))
     ##############################
 
+    os.environ["WORKING_DIRECTORY"] = str(config("DATA_STORAGE_PATH"))
+
     print("API Keys loaded and tracing set with project name: ", project_name)

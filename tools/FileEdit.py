@@ -5,7 +5,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Dict, Optional, Annotated, List
 from dotenv import load_dotenv
-from logger import setup_logger
+from .logger import setup_logger
 
 # Load environment variables from .env file
 load_dotenv()

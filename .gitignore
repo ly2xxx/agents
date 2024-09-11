@@ -176,3 +176,6 @@ docs/docs_skeleton/yarn.lock
 # not intended for the repo
 Untitled*.ipynb
 images/
+
+#temp data
+data_storage/

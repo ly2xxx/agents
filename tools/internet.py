@@ -7,7 +7,7 @@ from selenium.webdriver.chrome.service import Service
 from typing import Annotated, List
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
-from logger import setup_logger
+from .logger import setup_logger
 
 # Load environment variables from .env file
 load_dotenv()

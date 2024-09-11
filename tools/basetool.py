@@ -4,7 +4,7 @@ from typing import Annotated
 import subprocess
 from langchain_core.tools import tool
 from dotenv import load_dotenv
-from logger import setup_logger
+from .logger import setup_logger
 # Load environment variables
 load_dotenv()
 # Initialize logger
