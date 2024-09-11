@@ -60,19 +60,19 @@ class DataAnalyzerGraph:
         workflow = StateGraph(State)
         members = ["Hypothesis","Process","Visualization", "Search", "Coder", "Report", "QualityReview","Refiner"]
         wikipedia = WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper())
-
+        #works
         hypothesis_agent = create_agent(
             self.llm, 
             [collect_data,wikipedia,google_search,FireCrawl_scrape_webpages]+load_tools(["arxiv"],),
             HYPOTHESIS_AGENT_SYSTEM_PROMPT,
             members, WORKING_DIRECTORY)
-        
+        #works {'next': 'Search'}
         process_agent = create_supervisor(
             self.llm,
             RESEARCH_SUPERVISOR_SYSTEM_PROMPT,
             ["Visualization", "Search", "Coder", "Report"],
         )
-
+        #Error: [WinError 3] The system cannot find the path specified
         visualization_agent = create_agent(
             self.llm, 
             [read_document, execute_code, execute_command],
@@ -86,7 +86,7 @@ class DataAnalyzerGraph:
             CODE_AGENT_SYSTEM_PROMPT,
             members,WORKING_DIRECTORY
         )
-
+        #works
         searcher_agent= create_agent(
             self.llm,
             [read_document, collect_data,wikipedia,google_search,FireCrawl_scrape_webpages]+load_tools(["arxiv"],),
@@ -100,14 +100,14 @@ class DataAnalyzerGraph:
             REPORT_WRITER_AGENT_SYSTEM_PROMPT,
             members,WORKING_DIRECTORY
         )
-
+        #works
         quality_review_agent=create_agent(
             self.llm, 
             [create_document,read_document,edit_document], 
             QUALITY_REVIEW_AGENT_SYSTEM_PROMPT,
             members,WORKING_DIRECTORY
         )
-
+        #Error parsing output: Agent stopped due to iteration limit or time limit.
         note_agent=create_note_agent(
             self.json_llm, 
             [read_document], 
