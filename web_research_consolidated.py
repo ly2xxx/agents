@@ -16,6 +16,7 @@ from tools import *
 from setup_environment import set_environment_variables
 from tools.pdf import OUTPUT_DIRECTORY
 from tools.web import research
+from tools.internet import scrape_webpages
 from web_research_prompts import RESEARCHER_SYSTEM_PROMPT, TAVILY_AGENT_SYSTEM_PROMPT, RAG_SYSTEM_PROMPT
 
 class AgentState(TypedDict):
@@ -92,7 +93,7 @@ class WebResearchGraph:
         tavily_agent = self.create_agent(self.LLM, [self.TAVILY_TOOL], TAVILY_AGENT_SYSTEM_PROMPT)
         tavily_agent_node = functools.partial(self.agent_node, agent=tavily_agent, name=self.TAVILY_AGENT_NAME)
 
-        research_agent = self.create_agent(self.LLM, [research], RESEARCHER_SYSTEM_PROMPT)
+        research_agent = self.create_agent(self.LLM, [research, scrape_webpages], RESEARCHER_SYSTEM_PROMPT)
         research_agent_node = functools.partial(self.async_agent_node, agent=research_agent, name=self.RESEARCH_AGENT_NAME)
 
         workflow = StateGraph(AgentState)
