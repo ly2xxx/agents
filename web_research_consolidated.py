@@ -23,10 +23,10 @@ class AgentState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], operator.add]
 
 class WebResearchGraph:
-    def __init__(self):
+    def __init__(self, llm=None):
         set_environment_variables("Web_Search_Graph")
         self.TAVILY_TOOL = TavilySearchResults(max_results=6)
-        self.LLM = ChatOpenAI(model="gpt-4o-mini-2024-07-18")
+        self.LLM = llm if llm else ChatOpenAI(model="gpt-4o-mini-2024-07-18")
         
         self.RAG_AGENT_NAME = "rag"
         self.TAVILY_AGENT_NAME = "researcher"
