@@ -10,6 +10,7 @@ import asyncio
 import tempfile
 import os
 from langchain_openai import ChatOpenAI
+from langchain_community.chat_models import ChatOllama
 
 TRAVEL_AGENT = "Travel Agency"
 RESEARCH_AGENT = "Research Assistant"
@@ -19,13 +20,11 @@ SUPPORT_TYPES = ["pdf", "txt", "md"]
 def main():
     st.title("Multi-agent Assistant Demo")
 
-    model_selection = st.selectbox("Select LLM model", ["gpt-4o-mini", "llama3.2-not-working"])
+    model_selection = st.selectbox("Select LLM model", ["gpt-4o-mini", "llama3.2"])
     if model_selection == "gpt-4o-mini":
         llm = ChatOpenAI(model=model_selection, temperature=0)
     else:
-        llm = ChatOpenAI(
-                model=model_selection, base_url="http://localhost:11434/v1", temperature=0
-        )
+        llm = ChatOllama(model=model_selection, temperature=0)
 
     chain_selection = st.selectbox("Select assistant", [TRAVEL_AGENT, RESEARCH_AGENT, RAG_RESEARCH_AGENT])
     web_research = WebResearchGraph(llm)
