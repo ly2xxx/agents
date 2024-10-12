@@ -66,7 +66,7 @@ def agent_node(state, agent, name):
     result = agent.invoke(state)
     return {"messages": [HumanMessage(content=result["output"], name=name)]}
 
-def create_travel_agent_graph():
+def create_travel_agent_graph(llm: BaseChatModel = LLM):
     router_function_def = {
         "name": "route",
         "description": "Select the next role.",
@@ -104,17 +104,17 @@ def create_travel_agent_graph():
     # So we simply define the team_supervisor_chain as the prompt template we just made for it, then we pipe that into the LLM, and pipe that into a JsonOutputFunctionsParser. As we’re using a function here we can use the JSON output parser to extract the next property from the arguments the LLM provides for us.
     team_supervisor_chain = (
         team_supervisor_prompt_template
-        | LLM.bind_functions(functions=[router_function_def], function_call="route")
+        | llm.bind_functions(functions=[router_function_def], function_call="route")
         | JsonOutputFunctionsParser()
     )
 
-    travel_agent = create_agent(LLM, [TAVILY_TOOL], TRAVEL_AGENT_SYSTEM_PROMPT)
+    travel_agent = create_agent(llm, [TAVILY_TOOL], TRAVEL_AGENT_SYSTEM_PROMPT)
     # To get the travel agent’s node we need to use the agent_node function we defined before, which needs three arguments, the agent, the state and the name of the agent in string format. We have the agent and the name already, but the state will only be available at runtime. To solve this problem we can use the functools.partial function to create a new function that has the agent and name already filled in, and then we can pass in the state at runtime.
     travel_agent_node = functools.partial(
         agent_node, agent=travel_agent, name=TRAVEL_AGENT_NAME
     )
 
-    language_assistant = create_agent(LLM, [TAVILY_TOOL], LANGUAGE_ASSISTANT_SYSTEM_PROMPT)
+    language_assistant = create_agent(llm, [TAVILY_TOOL], LANGUAGE_ASSISTANT_SYSTEM_PROMPT)
     language_assistant_node = functools.partial(
         agent_node, agent=language_assistant, name=LANGUAGE_ASSISTANT_NAME
     )
@@ -122,7 +122,7 @@ def create_travel_agent_graph():
     visualizer = create_agent(LLM, [generate_image], VISUALIZER_SYSTEM_PROMPT)
     visualizer_node = functools.partial(agent_node, agent=visualizer, name=VISUALIZER_NAME)
 
-    designer = create_agent(LLM, [markdown_to_pdf_file], DESIGNER_SYSTEM_PROMPT)
+    designer = create_agent(llm, [markdown_to_pdf_file], DESIGNER_SYSTEM_PROMPT)
     designer_node = functools.partial(agent_node, agent=designer, name=DESIGNER_NAME)
 
     workflow = StateGraph(AgentState)

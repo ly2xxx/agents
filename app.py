@@ -25,6 +25,7 @@ def main():
         llm = ChatOpenAI(model=model_selection, temperature=0)
     else:
         llm = ChatOllama(model=model_selection, temperature=0)
+        llm_travel = ChatOpenAI(model=model_selection, base_url="http://localhost:11434/v1", temperature=0)
 
     chain_selection = st.selectbox("Select assistant", [TRAVEL_AGENT, RESEARCH_AGENT, RAG_RESEARCH_AGENT])
     web_research = WebResearchGraph(llm)
