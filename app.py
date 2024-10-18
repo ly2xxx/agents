@@ -19,6 +19,21 @@ RAG_RESEARCH_AGENT = "RAG Research Assistant"
 RAG_CHATBOT_AGENT = "RAG Chatbot Agent"
 SUPPORT_TYPES = ["pdf", "txt", "md"]
 
+def process_uploaded_files(uploaded_files, support_types):
+    temp_file_paths = []
+    suffixes = ['.' + file_type for file_type in support_types]
+    
+    for uploaded_file in uploaded_files:
+        file_suffix = os.path.splitext(uploaded_file.name)[1].lower()
+        if file_suffix in suffixes:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=file_suffix) as temp_file:
+                temp_file.write(uploaded_file.read())
+                temp_file_paths.append(temp_file.name)
+        else:
+            st.warning(f"File type {file_suffix} not supported. Supported types: {','.join(support_types)}")
+    
+    return temp_file_paths
+
 def main():
     st.title("Multi-agent Assistant Demo")
 
@@ -51,7 +66,7 @@ def main():
     user_input = st.text_area("Enter your query:")
 
     # File picker (only shown for RAG_RESEARCH_AGENT)
-    if chain_selection == RAG_RESEARCH_AGENT:
+    if chain_selection == RAG_RESEARCH_AGENT or RAG_CHATBOT_AGENT:
         uploaded_files = []
         num_files = st.number_input("Pick your file(s) - files for Retrieval Augmented Query", min_value=1, value=1, step=1)
         for i in range(num_files):
@@ -60,6 +75,7 @@ def main():
                 uploaded_files.append(file)
 
     if st.button("Submit"):
+        temp_file_paths = []  # Initialize the list here
         query = {"messages": [HumanMessage(content=user_input)]}
         if chain_selection == TRAVEL_AGENT:
             for chunk in langgraph_chain.stream(query):
@@ -69,27 +85,31 @@ def main():
         elif chain_selection == RESEARCH_AGENT:
             asyncio.run(run_research_graph(query, langgraph_chain))
         elif chain_selection == RAG_RESEARCH_AGENT:
-            # Save all uploaded files to temporary locations
-            temp_file_paths = []
-            suffixes = ['.' + file_type for file_type in SUPPORT_TYPES]
-            for uploaded_file in uploaded_files:
-                file_suffix = os.path.splitext(uploaded_file.name)[1].lower()
-                if file_suffix in suffixes:
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=file_suffix) as temp_file:
-                        temp_file.write(uploaded_file.read())
-                        temp_file_paths.append(temp_file.name)
-                else:
-                    st.warning(f"File type {file_suffix} not supported. Supported types: {','.join(SUPPORT_TYPES)}")
+            # # Save all uploaded files to temporary locations
+            # temp_file_paths = []
+            # suffixes = ['.' + file_type for file_type in SUPPORT_TYPES]
+            # for uploaded_file in uploaded_files:
+            #     file_suffix = os.path.splitext(uploaded_file.name)[1].lower()
+            #     if file_suffix in suffixes:
+            #         with tempfile.NamedTemporaryFile(delete=False, suffix=file_suffix) as temp_file:
+            #             temp_file.write(uploaded_file.read())
+            #             temp_file_paths.append(temp_file.name)
+            #     else:
+            #         st.warning(f"File type {file_suffix} not supported. Supported types: {','.join(SUPPORT_TYPES)}")
 
             # Convert the list of file paths to a comma-delimited string
-            temp_file_path = ','.join(temp_file_paths)
+            temp_file_paths = process_uploaded_files(uploaded_files, SUPPORT_TYPES)#','.join(temp_file_paths)
             # Use the temporary file path in the function call
-            asyncio.run(run_research_graph({"messages": [HumanMessage(content=f"Query: {user_input}\nFile Path: {temp_file_path}")]}, langgraph_chain))
-            # Clean up the temporary files after use
-            for path in temp_file_paths:
-                os.unlink(path)
+            asyncio.run(run_research_graph({"messages": [HumanMessage(content=f"Query: {user_input}\nFile Path: {','.join(temp_file_paths)}")]}, langgraph_chain))
         elif chain_selection == RAG_CHATBOT_AGENT:
-            asyncio.run(run_research_graph(query, langgraph_chain))
+            config = {"configurable": {"thread_id": "1"}}  # Add a thread_id
+            temp_file_paths = process_uploaded_files(uploaded_files, SUPPORT_TYPES)
+            input_data = {"messages": [HumanMessage(content=f"Query: {user_input}\nFile Path: {','.join(temp_file_paths)}")]}
+            run_chatbot_graph(langgraph_chain, input_data, config)
+
+        # Clean up the temporary files after use
+        for path in temp_file_paths:
+            os.unlink(path)
 
 def displayGraph(chain, chain_selection):
     # Display the graph visualization
@@ -114,6 +134,20 @@ async def run_research_graph(input, chain):
             else:
                 st.write(output_value)
         st.write("\n---\n")
+
+def run_chatbot_graph(graph, input, config):
+    output = graph.invoke(input, config=config)
+    if isinstance(output, str):
+        st.write("---")
+        st.write("Output:")
+        st.write(output)
+    else:
+        for node_name, output_value in output.items():
+            st.write("---")
+            st.write(f"Output from node '{node_name}':")
+            st.write(output_value)
+    st.write("\n---\n")
+
 
 if __name__ == "__main__":
     main()
