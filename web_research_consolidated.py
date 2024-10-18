@@ -1,3 +1,4 @@
+import os
 import asyncio
 import functools
 import operator
@@ -53,13 +54,14 @@ class WebResearchGraph:
 
     def save_file_node(self, state: AgentState):
         markdown_content = str(state["messages"][-1].content)
-        filename = f"{OUTPUT_DIRECTORY}/{uuid.uuid4()}.md"
-        with open(filename, "w", encoding="utf-8") as file:
+        filename = f"{uuid.uuid4()}.md"
+        full_path = os.path.join(OUTPUT_DIRECTORY, filename)
+        with open(full_path, "w", encoding="utf-8") as file:
             file.write(markdown_content)
         return {
             "messages": [
                 HumanMessage(
-                    content=f"Output written successfully to {filename}",
+                    content=f"Output written successfully. <a href='output/{filename}' download>Click here to download the file</a>",
                     name=self.SAVE_FILE_NODE_NAME,
                 )
             ]

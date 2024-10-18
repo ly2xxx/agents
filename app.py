@@ -101,7 +101,11 @@ async def run_research_graph(input, chain):
         for node_name, output_value in output.items():
             st.write("---")
             st.write(f"Output from node '{node_name}':")
-            st.write(output_value)
+            if isinstance(output_value, dict) and 'messages' in output_value:
+                for message in output_value['messages']:
+                    st.markdown(message.content, unsafe_allow_html=True)
+            else:
+                st.write(output_value)
         st.write("\n---\n")
 
 if __name__ == "__main__":
