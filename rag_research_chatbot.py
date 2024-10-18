@@ -1,20 +1,28 @@
-import asyncio
-import operator
-from typing import Annotated, Sequence, TypedDict
+# import asyncio
+# import operator
+# from typing import Annotated, Sequence, TypedDict
 
-from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage, RemoveMessage
+from langchain_core.messages import HumanMessage, SystemMessage, RemoveMessage
+from langgraph.graph import MessagesState
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, StateGraph, START
-from langgraph.checkpoint.memory import MemorySaver
+# from langgraph.checkpoint.memory import MemorySaver
+import sqlite3
+from langgraph.checkpoint.sqlite import SqliteSaver
+# import aiosqlite
+# from langgraph.checkpoint.aiosqlite import AsyncSqliteSaver
 
 from setup_environment import set_environment_variables
 
-class State(TypedDict):
-    messages: Annotated[Sequence[BaseMessage], operator.add]
+class State(MessagesState):
     summary: str
 
 class RAGResearchChatbot:
     def __init__(self, llm=None):
+        # db_path = "state_db/example.db"
+        # self.CONN = sqlite3.connect(db_path, check_same_thread=False)
+        # In memory
+        self.CONN = sqlite3.connect(":memory:", check_same_thread = False)
         set_environment_variables("RAG_Research_Chatbot")
         self.LLM = llm if llm else ChatOpenAI(model="gpt-4o-mini")
         
@@ -50,7 +58,7 @@ class RAGResearchChatbot:
 
     def should_continue(self, state: State):
         messages = state["messages"]
-        if len(messages) > 6:
+        if len(messages) > 3:
             return self.SUMMARIZE_NODE_NAME
         return END
 
@@ -64,29 +72,38 @@ class RAGResearchChatbot:
         workflow.add_conditional_edges(self.CONVERSATION_NODE_NAME, self.should_continue)
         workflow.add_edge(self.SUMMARIZE_NODE_NAME, self.CONVERSATION_NODE_NAME)
 
-        # memory = MemorySaver()
-        return workflow.compile()#checkpointer=memory)
+        memory = SqliteSaver(self.CONN)
+        return workflow.compile(checkpointer=memory)
 
 # Usage
 rag_research_chatbot = RAGResearchChatbot()
 chatbot_graph = rag_research_chatbot.create_rag_research_chatbot_graph()
 
 # Run the graph
-async def run_chatbot_graph(graph, input):
-    async for output in graph.astream(input):
+# async def run_chatbot_graph(graph, input):
+#     async for output in graph.astream(input):
+#         for node_name, output_value in output.items():
+#             print("---")
+#             print(f"Output from node '{node_name}':")
+#             print(output_value)
+#         print("\n---\n")
+def run_chatbot_graph(graph, input, config):
+    output = graph.invoke(input, config=config)
+    if isinstance(output, str):
+        print("---")
+        print("Output:")
+        print(output)
+    else:
         for node_name, output_value in output.items():
             print("---")
             print(f"Output from node '{node_name}':")
             print(output_value)
-        print("\n---\n")
+    print("\n---\n")
 
 if __name__ == "__main__":
-    # test_input = {"messages": [HumanMessage(content="Tell me about the history of artificial intelligence.")]}
-    # Create a thread
-    # config = {"configurable": {"thread_id": "1"}}
-    # asyncio.run(run_chatbot_graph(chatbot_graph, test_input))
     chatbot_graph = rag_research_chatbot.create_rag_research_chatbot_graph()
     state = {"messages": []}
+    config = {"configurable": {"thread_id": "1"}}
 
     print("Welcome to the RAG Research Chatbot. Type 'exit' to end the conversation.")
     
@@ -96,11 +113,12 @@ if __name__ == "__main__":
             break
         
         state["messages"].append(HumanMessage(content=user_input))
-        asyncio.run(run_chatbot_graph(chatbot_graph, state))
+        run_chatbot_graph(chatbot_graph, {"messages": state["messages"]}, config)
         
         # Extract the last message from the state
         if state["messages"]:
             last_message = state["messages"][-1]
             print(f"Chatbot: {last_message.content}")
-        
+    
     print("Thank you for using the RAG Research Chatbot!")
+
