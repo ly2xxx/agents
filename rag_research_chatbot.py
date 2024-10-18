@@ -12,6 +12,13 @@ from langgraph.checkpoint.sqlite import SqliteSaver
 # import aiosqlite
 # from langgraph.checkpoint.aiosqlite import AsyncSqliteSaver
 
+from tools import *
+from web_research_prompts import RAG_SYSTEM_PROMPT
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_openai import ChatOpenAI
+from langchain.agents import AgentExecutor, create_openai_tools_agent
+import functools
+
 from setup_environment import set_environment_variables
 
 class State(MessagesState):
@@ -25,7 +32,7 @@ class RAGResearchChatbot:
         self.CONN = sqlite3.connect(":memory:", check_same_thread = False)
         set_environment_variables("RAG_Research_Chatbot")
         self.LLM = llm if llm else ChatOpenAI(model="gpt-4o-mini")
-        
+        self.RAG_AGENT_NAME = "rag"
         self.CONVERSATION_NODE_NAME = "conversation"
         self.SUMMARIZE_NODE_NAME = "summarize_conversation"
 
@@ -61,16 +68,37 @@ class RAGResearchChatbot:
         if len(messages) > 3:
             return self.SUMMARIZE_NODE_NAME
         return END
+    
+    def agent_node(self, state: State, agent, name):
+        result = agent.invoke(state)
+        return {"messages": [HumanMessage(content=result["output"], name=name)]}
+    
+    def create_agent(self, llm: ChatOpenAI, tools: list, system_prompt: str):
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", system_prompt),
+            MessagesPlaceholder(variable_name="messages"),
+            MessagesPlaceholder(variable_name="agent_scratchpad"),
+        ])
+        agent = create_openai_tools_agent(llm, tools, prompt)
+        executor = AgentExecutor(agent=agent, tools=tools)
+        return executor
 
     def create_rag_research_chatbot_graph(self):
+        rag_agent = self.create_agent(self.LLM, [rag_query], RAG_SYSTEM_PROMPT)
+        rag_agent_node = functools.partial(self.agent_node, agent=rag_agent, name=self.RAG_AGENT_NAME)
+
         workflow = StateGraph(State)
-        
+        workflow.add_node(self.RAG_AGENT_NAME, rag_agent_node)
         workflow.add_node(self.CONVERSATION_NODE_NAME, self.call_model)
         workflow.add_node(self.SUMMARIZE_NODE_NAME, self.summarize_conversation)
 
-        workflow.add_edge(START, self.CONVERSATION_NODE_NAME)
+        # workflow.add_edge(START, self.CONVERSATION_NODE_NAME)
+        # workflow.add_edge(START, self.RAG_AGENT_NAME)
+        workflow.add_edge(self.RAG_AGENT_NAME, self.CONVERSATION_NODE_NAME)
         workflow.add_conditional_edges(self.CONVERSATION_NODE_NAME, self.should_continue)
         workflow.add_edge(self.SUMMARIZE_NODE_NAME, self.CONVERSATION_NODE_NAME)
+
+        workflow.set_entry_point(self.RAG_AGENT_NAME)
 
         memory = SqliteSaver(self.CONN)
         return workflow.compile(checkpointer=memory)
@@ -111,10 +139,15 @@ if __name__ == "__main__":
         user_input = input("You: ")
         if user_input.lower() == 'exit':
             break
-        
-        state["messages"].append(HumanMessage(content=user_input))
+
+        # state["messages"].append(HumanMessage(content=user_input))
+        # run_chatbot_graph(chatbot_graph, {"messages": state["messages"]}, config)
+
+        file_path = "D:\code\langgraph_agents\output\Bradford-1day.pdf"
+        query = user_input
+        state["messages"].append(HumanMessage(content=f"Query: {query}\nFile Path: {file_path}"))
         run_chatbot_graph(chatbot_graph, {"messages": state["messages"]}, config)
-        
+
         # Extract the last message from the state
         if state["messages"]:
             last_message = state["messages"][-1]
