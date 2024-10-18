@@ -4,6 +4,7 @@ from multi_agent import create_travel_agent_graph
 # from web_research import create_web_research_graph
 # from web_research_rag import create_web_research_rag_graph
 from web_research_consolidated import WebResearchGraph
+from rag_research_chatbot import RAGResearchChatbot
 from io import BytesIO
 from PIL import Image
 import asyncio
@@ -15,6 +16,7 @@ from langchain_community.chat_models import ChatOllama
 TRAVEL_AGENT = "Travel Agency"
 RESEARCH_AGENT = "Research Assistant"
 RAG_RESEARCH_AGENT = "RAG Research Assistant"
+RAG_CHATBOT_AGENT = "RAG Chatbot Agent"
 SUPPORT_TYPES = ["pdf", "txt", "md"]
 
 def main():
@@ -27,8 +29,9 @@ def main():
         llm = ChatOllama(model=model_selection, temperature=0)
         llm_travel = ChatOpenAI(model=model_selection, base_url="http://localhost:11434/v1", temperature=0)
 
-    chain_selection = st.selectbox("Select assistant", [TRAVEL_AGENT, RESEARCH_AGENT, RAG_RESEARCH_AGENT])
+    chain_selection = st.selectbox("Select assistant", [TRAVEL_AGENT, RESEARCH_AGENT, RAG_RESEARCH_AGENT, RAG_CHATBOT_AGENT])
     web_research = WebResearchGraph(llm)
+    rag_chatbot = RAGResearchChatbot(llm)
 
     langgraph_chain = None
     if chain_selection == TRAVEL_AGENT:
@@ -37,6 +40,8 @@ def main():
         langgraph_chain = web_research.create_web_research_graph()
     elif chain_selection == RAG_RESEARCH_AGENT:
         langgraph_chain = web_research.create_web_research_rag_graph()
+    elif chain_selection == RAG_CHATBOT_AGENT:
+        langgraph_chain = rag_chatbot.create_rag_research_chatbot_graph()
     else:
         langgraph_chain = None
     
@@ -83,6 +88,8 @@ def main():
             # Clean up the temporary files after use
             for path in temp_file_paths:
                 os.unlink(path)
+        elif chain_selection == RAG_CHATBOT_AGENT:
+            asyncio.run(run_research_graph(query, langgraph_chain))
 
 def displayGraph(chain, chain_selection):
     # Display the graph visualization
