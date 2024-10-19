@@ -1,7 +1,8 @@
 from langchain.tools import tool
 from pydantic import BaseModel, Field
 # from langchain.embeddings import OpenAIEmbeddings
-from langchain.embeddings.openai import OpenAIEmbeddings
+# from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 # from langchain.vectorstores import Chroma
 from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import CharacterTextSplitter
