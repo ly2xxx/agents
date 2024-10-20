@@ -87,91 +87,93 @@ def rerun():
     st.session_state['result']=None
     st.session_state["newvalues"]=None
             
+def main():
+    # Initialize session state
+    if 'api_key' not in st.session_state:
+        st.session_state['api_key'] = None
+        st.session_state['dm'] = None
+        st.session_state['result']=None
+        st.session_state["newvalues"]=None
 
-# Initialize session state
-if 'api_key' not in st.session_state:
-    st.session_state['api_key'] = None
-    st.session_state['dm'] = None
-    st.session_state['result']=None
-    st.session_state["newvalues"]=None
+    # App title
+    st.title("Human-In-The-Loop AI Collaboration with Reflection Agent")
 
-# App title
-st.title("Human-In-The-Loop AI Collaboration with Reflection Agent")
+    with st.sidebar:
+        st.markdown("""
+    ### What it's all about:
 
-with st.sidebar:
-    st.markdown("""
-### What it's all about:
-
-    This application demonstrates
-    how artificial intelligence
-    agents and a human (you) can
-    collaborate on a task.
-    
-    Today's task is to write a news
-    article about a meeting for 
-    which a text transcript or 
-    minutes are available.
-    
-    You point to that source;
-    the writer agent drafts;
-    the critique agent critiques;
-    you can edit either the draft or
-    the critique. This repeats until
-    you are satisfied with a draft.
-    v0.0.4
-""")
-
-# Sidebar for API key input
-
-if not st.session_state.api_key:
-    #with st.sidebar:
-    api_key=st.text_input("Enter your ChatGPT API key (Tier 1 or higher account) to get started:", type="password")
-    st.markdown("You can also use the custom GPT version free without an API key or a paid subscription by clicking [here](https://chatgpt.com/g/g-roNR24Ty6-collaborative-meeting-reporter).",
-                unsafe_allow_html=True)
-    if api_key:
-        st.session_state['api_key'] =api_key
-        st.rerun()
-with st.sidebar:
-    st.markdown("[custom GPT Version](https://chatgpt.com/g/g-roNR24Ty6-collaborative-meeting-reporter)", unsafe_allow_html=True)
-    st.markdown("[feature requests](https://github.com/tevslin/meeting-reporter/discussions)", unsafe_allow_html=True)
-    st.markdown("[bug reports](https://github.com/tevslin/meeting-reporter/issues)", unsafe_allow_html=True)
-    st.markdown("[source code](https://github.com/tevslin/meeting-reporter)", unsafe_allow_html=True)
-    st.markdown("[blog post](https://blog.tomevslin.com/2024/04/human-in-the-loop-artificial-intelligence.html)", unsafe_allow_html=True)    
-
-if st.session_state['api_key'] and st.session_state["dm"] is None:
-    os.environ['OPENAI_API_KEY'] = st.session_state['api_key']
-    st.session_state['dm'] = mm_agent.StateMachine()
-    st.session_state["result"]=st.session_state['dm'].start()
-    
-
-
-if st.session_state["result"]:
-    print("have result")
-    #st.session_state["newvalues"]
-    if "quit" not in st.session_state['result']:
-        if st.session_state["newvalues"] is None:
-            process_form(st.session_state['result']["form"],st.session_state['result'])
-        if st.session_state["newvalues"] and "next" in st.session_state.newvalues:
-            process_form(st.session_state['result']["form"],st.session_state.newvalues)
-        if st.session_state["newvalues"] and not "next" in st.session_state.newvalues:
-            #if len(st.session_state["newvalues"]["url"])>0:
-                print("*********")
-                #st.session_state["newvalues"]
-                with st.spinner("Please wait... Bots at work"):
-                    st.session_state["result"]=st.session_state['dm'].resume(st.session_state["newvalues"])
-                st.session_state["newvalues"]=None
-                st.rerun()
-    if "quit" in st.session_state["result"]:
-        st.subheader(st.session_state.result["title"])
-        st.write(st.session_state.result["date"])
-        st.markdown(st.session_state.result["body"])
-        st.write("\n")
-        st.write("summary:",st.session_state.result["summary"])
-        st.button("Run with new document",key="rerun",on_click=rerun)
+        This application demonstrates
+        how artificial intelligence
+        agents and a human (you) can
+        collaborate on a task.
         
-        with st.sidebar:
-            st.button("Run with new document",key="rerun1",on_click=rerun)
+        Today's task is to write a news
+        article about a meeting for 
+        which a text transcript or 
+        minutes are available.
         
+        You point to that source;
+        the writer agent drafts;
+        the critique agent critiques;
+        you can edit either the draft or
+        the critique. This repeats until
+        you are satisfied with a draft.
+        v0.0.4
+    """)
+
+    # Sidebar for API key input
+
+    if not st.session_state.api_key:
+        #with st.sidebar:
+        api_key=st.text_input("Enter your ChatGPT API key (Tier 1 or higher account) to get started:", type="password")
+        st.markdown("You can also use the custom GPT version free without an API key or a paid subscription by clicking [here](https://chatgpt.com/g/g-roNR24Ty6-collaborative-meeting-reporter).",
+                    unsafe_allow_html=True)
+        if api_key:
+            st.session_state['api_key'] =api_key
+            st.rerun()
+    with st.sidebar:
+        st.markdown("[custom GPT Version](https://chatgpt.com/g/g-roNR24Ty6-collaborative-meeting-reporter)", unsafe_allow_html=True)
+        st.markdown("[feature requests](https://github.com/tevslin/meeting-reporter/discussions)", unsafe_allow_html=True)
+        st.markdown("[bug reports](https://github.com/tevslin/meeting-reporter/issues)", unsafe_allow_html=True)
+        st.markdown("[source code](https://github.com/tevslin/meeting-reporter)", unsafe_allow_html=True)
+        st.markdown("[blog post](https://blog.tomevslin.com/2024/04/human-in-the-loop-artificial-intelligence.html)", unsafe_allow_html=True)    
+
+    if st.session_state['api_key'] and st.session_state["dm"] is None:
+        os.environ['OPENAI_API_KEY'] = st.session_state['api_key']
+        st.session_state['dm'] = mm_agent.ArticleWriterStateMachine()
+        st.session_state["result"]=st.session_state['dm'].start()
+        
+
+
+    if st.session_state["result"]:
+        print("have result")
+        #st.session_state["newvalues"]
+        if "quit" not in st.session_state['result']:
+            if st.session_state["newvalues"] is None:
+                process_form(st.session_state['result']["form"],st.session_state['result'])
+            if st.session_state["newvalues"] and "next" in st.session_state.newvalues:
+                process_form(st.session_state['result']["form"],st.session_state.newvalues)
+            if st.session_state["newvalues"] and not "next" in st.session_state.newvalues:
+                #if len(st.session_state["newvalues"]["url"])>0:
+                    print("*********")
+                    #st.session_state["newvalues"]
+                    with st.spinner("Please wait... Bots at work"):
+                        st.session_state["result"]=st.session_state['dm'].resume(st.session_state["newvalues"])
+                    st.session_state["newvalues"]=None
+                    st.rerun()
+        if "quit" in st.session_state["result"]:
+            st.subheader(st.session_state.result["title"])
+            st.write(st.session_state.result["date"])
+            st.markdown(st.session_state.result["body"])
+            st.write("\n")
+            st.write("summary:",st.session_state.result["summary"])
+            st.button("Run with new document",key="rerun",on_click=rerun)
+            
+            with st.sidebar:
+                st.button("Run with new document",key="rerun1",on_click=rerun)
+
+if __name__ == "__main__":
+    main()        
             
 
 

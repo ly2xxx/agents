@@ -83,9 +83,13 @@ def main():
     # Create a placeholder
     dynamic_content_container = st.empty()
     # File picker (only shown for RAG_RESEARCH_AGENT)
-    if chain_selection in [RAG_RESEARCH_AGENT, RAG_CHATBOT_AGENT]:#== RAG_RESEARCH_AGENT or RAG_CHATBOT_AGENT:
+    if chain_selection in [RAG_RESEARCH_AGENT, RAG_CHATBOT_AGENT]:
         with dynamic_content_container.container():
             uploaded_files = render_file_picker(SUPPORT_TYPES)
+    elif chain_selection in [ARTICLE_WRITER]:
+        with dynamic_content_container.container():
+            import mm_st
+            mm_st.main()
     else:
         dynamic_content_container.empty()
         # uploaded_files = []
