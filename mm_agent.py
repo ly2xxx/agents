@@ -3,7 +3,8 @@ import json5 as json
 
 from langgraph.graph import Graph
 
-from langchain.adapters.openai import convert_openai_messages
+# from langchain.adapters.openai import convert_openai_messages
+from langchain_community.adapters.openai import convert_openai_messages
 from langchain_openai import ChatOpenAI
 
 MODEL='gpt-4o-mini'
@@ -217,10 +218,14 @@ class StateMachine:
         workflow.add_edge('write', 'critique')
         workflow.add_edge('critique','human_review')
         workflow.add_edge(start_agent.name,"input")
-        workflow.add_conditional_edges(start_key='human_review',
-                                       condition=lambda x: "accept" if x['critique'] is None else "revise",
-                                       conditional_edge_mapping={"accept": "output", "revise": "write"})
-                                       
+        # workflow.add_conditional_edges(start_key='human_review',
+        #                                condition=lambda x: "accept" if x['critique'] is None else "revise",
+        #                                conditional_edge_mapping={"accept": "output", "revise": "write"})
+        workflow.add_conditional_edges(
+            'human_review',
+            lambda x: "accept" if x['critique'] is None else "revise",
+            {"accept": "output", "revise": "write"}
+        )              
         
         # set up start and end nodes
         workflow.set_entry_point(start_agent.name)
