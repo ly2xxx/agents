@@ -179,7 +179,7 @@ class StartAgent:
           
             
         
-class StateMachine:
+class ArticleWriterStateMachine:
     def __init__(self,api_key=None):
         import os
         from langgraph.checkpoint.sqlite import SqliteSaver
@@ -264,7 +264,7 @@ if __name__ == '__main__': #test code
     from mm_tkinter import process_form
 
        
-    sm=StateMachine()
+    sm=ArticleWriterStateMachine()
     result =sm.start()
     while "quit" not in result:
         new_values=process_form(result["form"],result)
