@@ -144,7 +144,6 @@ class InputAgent:
         print(article.keys())
         if "url" in article:
             the_text=load_text_from_url(article["url"])
-            
         else:
             if "raw" in article: #if already read
                 the_text=extract_text(content=article['raw'],content_type=article["file_name"].split('.')[-1])
@@ -233,6 +232,10 @@ class ArticleWriterStateMachine:
         
         self.thread={"configurable": {"thread_id": "2"}}
         self.chain=workflow.compile(checkpointer=self.memory,interrupt_after=[start_agent.name,"critique"])
+
+    def getGraph(self):
+        return self.chain
+
     def start(self):
         result=self.chain.invoke("",self.thread)
         #print("*",self.chain.get_state(self.thread),"*")

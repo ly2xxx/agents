@@ -12,6 +12,7 @@ import tempfile
 import os
 from langchain_openai import ChatOpenAI
 from langchain_community.chat_models import ChatOllama
+from ui.file_picker import render_file_picker
 
 TRAVEL_AGENT = "Travel Agency"
 RESEARCH_AGENT = "Research Assistant"
@@ -65,14 +66,20 @@ def main():
     # Get user input
     user_input = st.text_area("Enter your query:")
 
+    # Create a placeholder
+    dynamic_content_container = st.empty()
     # File picker (only shown for RAG_RESEARCH_AGENT)
-    if chain_selection == RAG_RESEARCH_AGENT or RAG_CHATBOT_AGENT:
-        uploaded_files = []
-        num_files = st.number_input("Pick your file(s) - files for Retrieval Augmented Query", min_value=1, value=1, step=1)
-        for i in range(num_files):
-            file = st.file_uploader(f"Choose file {i+1}", type=SUPPORT_TYPES, key=f"file_{i}")
-            if file:
-                uploaded_files.append(file)
+    if chain_selection in [RAG_RESEARCH_AGENT, RAG_CHATBOT_AGENT]:#== RAG_RESEARCH_AGENT or RAG_CHATBOT_AGENT:
+        with dynamic_content_container.container():
+            uploaded_files = render_file_picker(SUPPORT_TYPES)
+    else:
+        dynamic_content_container.empty()
+        # uploaded_files = []
+        # num_files = st.number_input("Pick your file(s) - files for Retrieval Augmented Query", min_value=1, value=1, step=1)
+        # for i in range(num_files):
+        #     file = st.file_uploader(f"Choose file {i+1}", type=SUPPORT_TYPES, key=f"file_{i}")
+        #     if file:
+        #         uploaded_files.append(file)
 
     if st.button("Submit"):
         temp_file_paths = []  # Initialize the list here
