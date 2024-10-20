@@ -21,6 +21,13 @@ RAG_RESEARCH_AGENT = "RAG Research Assistant"
 RAG_CHATBOT_AGENT = "RAG Chatbot Agent"
 ARTICLE_WRITER = "Article Writer"
 SUPPORT_TYPES = ["pdf", "txt", "md"]
+CHAIN_MODEL_OPTIONS = {
+    TRAVEL_AGENT: ["gpt-4o-mini"],
+    RESEARCH_AGENT: ["gpt-4o-mini", "llama3.2"],
+    RAG_RESEARCH_AGENT: ["gpt-4o-mini", "llama3.2"],
+    RAG_CHATBOT_AGENT: ["gpt-4o-mini", "llama3.2"],
+    ARTICLE_WRITER: ["gpt-4o-mini"]
+}
 
 def process_uploaded_files(uploaded_files, support_types):
     temp_file_paths = []
@@ -40,14 +47,16 @@ def process_uploaded_files(uploaded_files, support_types):
 def main():
     st.title("Multi-agent Assistant Demo")
 
-    model_selection = st.selectbox("Select LLM model", ["gpt-4o-mini", "llama3.2"])
+    chain_selection = st.selectbox("Select assistant", [TRAVEL_AGENT, RESEARCH_AGENT, RAG_RESEARCH_AGENT, RAG_CHATBOT_AGENT, ARTICLE_WRITER])
+    # Get available models for the selected chain
+    available_models = CHAIN_MODEL_OPTIONS.get(chain_selection, ["gpt-4o-mini", "llama3.2"])
+    model_selection = st.selectbox("Select LLM model", available_models)
     if model_selection == "gpt-4o-mini":
         llm = ChatOpenAI(model=model_selection, temperature=0)
     else:
         llm = ChatOllama(model=model_selection, temperature=0)
         llm_travel = ChatOpenAI(model=model_selection, base_url="http://localhost:11434/v1", temperature=0)
 
-    chain_selection = st.selectbox("Select assistant", [TRAVEL_AGENT, RESEARCH_AGENT, RAG_RESEARCH_AGENT, RAG_CHATBOT_AGENT, ARTICLE_WRITER])
     web_research = WebResearchGraph(llm)
     rag_chatbot = RAGResearchChatbot(llm)
     article_writer = ArticleWriterStateMachine()
