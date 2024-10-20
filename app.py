@@ -5,6 +5,7 @@ from multi_agent import create_travel_agent_graph
 # from web_research_rag import create_web_research_rag_graph
 from web_research_consolidated import WebResearchGraph
 from rag_research_chatbot import RAGResearchChatbot
+from mm_agent import ArticleWriterStateMachine
 from io import BytesIO
 from PIL import Image
 import asyncio
@@ -18,6 +19,7 @@ TRAVEL_AGENT = "Travel Agency"
 RESEARCH_AGENT = "Research Assistant"
 RAG_RESEARCH_AGENT = "RAG Research Assistant"
 RAG_CHATBOT_AGENT = "RAG Chatbot Agent"
+ARTICLE_WRITER = "Article Writer"
 SUPPORT_TYPES = ["pdf", "txt", "md"]
 
 def process_uploaded_files(uploaded_files, support_types):
@@ -45,9 +47,10 @@ def main():
         llm = ChatOllama(model=model_selection, temperature=0)
         llm_travel = ChatOpenAI(model=model_selection, base_url="http://localhost:11434/v1", temperature=0)
 
-    chain_selection = st.selectbox("Select assistant", [TRAVEL_AGENT, RESEARCH_AGENT, RAG_RESEARCH_AGENT, RAG_CHATBOT_AGENT])
+    chain_selection = st.selectbox("Select assistant", [TRAVEL_AGENT, RESEARCH_AGENT, RAG_RESEARCH_AGENT, RAG_CHATBOT_AGENT, ARTICLE_WRITER])
     web_research = WebResearchGraph(llm)
     rag_chatbot = RAGResearchChatbot(llm)
+    article_writer = ArticleWriterStateMachine()
 
     langgraph_chain = None
     if chain_selection == TRAVEL_AGENT:
@@ -58,6 +61,8 @@ def main():
         langgraph_chain = web_research.create_web_research_rag_graph()
     elif chain_selection == RAG_CHATBOT_AGENT:
         langgraph_chain = rag_chatbot.create_rag_research_chatbot_graph()
+    elif chain_selection == ARTICLE_WRITER:
+        langgraph_chain = article_writer.getGraph()
     else:
         langgraph_chain = None
     
@@ -113,6 +118,8 @@ def main():
             temp_file_paths = process_uploaded_files(uploaded_files, SUPPORT_TYPES)
             input_data = {"messages": [HumanMessage(content=f"Query: {user_input}\nFile Path: {','.join(temp_file_paths)}")]}
             run_chatbot_graph(langgraph_chain, input_data, config)
+        else:
+            st.write("Feature under construction")
 
         # Clean up the temporary files after use
         for path in temp_file_paths:
