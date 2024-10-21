@@ -2,7 +2,9 @@ import os
 
 import streamlit as st
 import mm_agent
+from setup_environment import set_environment_variables
 
+set_environment_variables("Article_Writer_Graph")
 
 def process_form(form_number,article):
     def set_value():
@@ -98,45 +100,46 @@ def main():
     # App title
     st.title("Human-In-The-Loop AI Collaboration with Reflection Agent")
 
-    with st.sidebar:
-        st.markdown("""
-    ### What it's all about:
+    # with st.sidebar:
+    #     st.markdown("""
+    # ### What it's all about:
 
-        This application demonstrates
-        how artificial intelligence
-        agents and a human (you) can
-        collaborate on a task.
+    #     This application demonstrates
+    #     how artificial intelligence
+    #     agents and a human (you) can
+    #     collaborate on a task.
         
-        Today's task is to write a news
-        article about a meeting for 
-        which a text transcript or 
-        minutes are available.
+    #     Today's task is to write a news
+    #     article about a meeting for 
+    #     which a text transcript or 
+    #     minutes are available.
         
-        You point to that source;
-        the writer agent drafts;
-        the critique agent critiques;
-        you can edit either the draft or
-        the critique. This repeats until
-        you are satisfied with a draft.
-        v0.0.4
-    """)
+    #     You point to that source;
+    #     the writer agent drafts;
+    #     the critique agent critiques;
+    #     you can edit either the draft or
+    #     the critique. This repeats until
+    #     you are satisfied with a draft.
+    #     v0.0.4
+    # """)
 
     # Sidebar for API key input
 
     if not st.session_state.api_key:
+        st.session_state['api_key'] = os.environ["OPENAI_API_KEY"]
         #with st.sidebar:
-        api_key=st.text_input("Enter your ChatGPT API key (Tier 1 or higher account) to get started:", type="password")
-        st.markdown("You can also use the custom GPT version free without an API key or a paid subscription by clicking [here](https://chatgpt.com/g/g-roNR24Ty6-collaborative-meeting-reporter).",
-                    unsafe_allow_html=True)
-        if api_key:
-            st.session_state['api_key'] =api_key
-            st.rerun()
-    with st.sidebar:
-        st.markdown("[custom GPT Version](https://chatgpt.com/g/g-roNR24Ty6-collaborative-meeting-reporter)", unsafe_allow_html=True)
-        st.markdown("[feature requests](https://github.com/tevslin/meeting-reporter/discussions)", unsafe_allow_html=True)
-        st.markdown("[bug reports](https://github.com/tevslin/meeting-reporter/issues)", unsafe_allow_html=True)
-        st.markdown("[source code](https://github.com/tevslin/meeting-reporter)", unsafe_allow_html=True)
-        st.markdown("[blog post](https://blog.tomevslin.com/2024/04/human-in-the-loop-artificial-intelligence.html)", unsafe_allow_html=True)    
+        # api_key=st.text_input("Enter your ChatGPT API key (Tier 1 or higher account) to get started:", type="password")
+        # st.markdown("You can also use the custom GPT version free without an API key or a paid subscription by clicking [here](https://chatgpt.com/g/g-roNR24Ty6-collaborative-meeting-reporter).",
+        #             unsafe_allow_html=True)
+        # if api_key:
+        #     st.session_state['api_key'] =api_key
+        #     st.rerun()
+    # with st.sidebar:
+    #     st.markdown("[custom GPT Version](https://chatgpt.com/g/g-roNR24Ty6-collaborative-meeting-reporter)", unsafe_allow_html=True)
+    #     st.markdown("[feature requests](https://github.com/tevslin/meeting-reporter/discussions)", unsafe_allow_html=True)
+    #     st.markdown("[bug reports](https://github.com/tevslin/meeting-reporter/issues)", unsafe_allow_html=True)
+    #     st.markdown("[source code](https://github.com/tevslin/meeting-reporter)", unsafe_allow_html=True)
+    #     st.markdown("[blog post](https://blog.tomevslin.com/2024/04/human-in-the-loop-artificial-intelligence.html)", unsafe_allow_html=True)    
 
     if st.session_state['api_key'] and st.session_state["dm"] is None:
         os.environ['OPENAI_API_KEY'] = st.session_state['api_key']
