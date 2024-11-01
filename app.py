@@ -163,42 +163,40 @@ async def run_research_graph(input, chain):
         st.write("\n---\n")
 
 def run_chatbot_graph(graph, input, config):
-    # Initialize chat history if not exists
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
     
-    # Create containers for chat display
     response_container = st.container()
     prompt_container = st.container()
 
-    # Get user input from the input parameter
     user_input = input["messages"][0].content
-    
-    # Add user message to chat history
     st.session_state.chat_history.append({"role": "user", "content": user_input})
     
-    # Get chatbot response
     output = graph.invoke(input, config=config)
     
-    # Process and display chatbot response
-    if isinstance(output, str):
-        response = output
+    # Extract AIMessage content from the string output
+    if isinstance(output, dict):
+        # response_value = str(next(iter(output.values())))
+        # ai_message_start = response_value.find("AIMessage(content='") + len("AIMessage(content='")
+        # ai_message_end = response_value.find("', response_metadata")
+        # response = response_value[ai_message_start:ai_message_end]
+         response = output["messages"][-1].content
     else:
-        # Extract response from output dictionary
-        response = next(iter(output.values()))
+        # Find AIMessage content in the string
+        ai_message_start = output.find("AIMessage(content='") + len("AIMessage(content='")
+        ai_message_end = output.find("', response_metadata")
+        response = output[ai_message_start:ai_message_end]
     
-    # Add assistant response to chat history
     st.session_state.chat_history.append({"role": "assistant", "content": response})
     
-    # Display full chat history
     with response_container:
         for message in st.session_state.chat_history:
             with st.chat_message(message["role"]):
                 st.write(message["content"])
     
-    # Display agent thoughts/debugging info
     with st.expander("Display Agent's Thoughts"):
         st.write(output)
+
 
 if __name__ == "__main__":
     main()
