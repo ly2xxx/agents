@@ -14,6 +14,7 @@ import os
 from langchain_openai import ChatOpenAI
 from langchain_community.chat_models import ChatOllama
 from ui.file_picker import render_file_picker
+import urllib.parse
 
 TRAVEL_AGENT = "Travel Agency"
 RESEARCH_AGENT = "Research Assistant"
@@ -200,14 +201,10 @@ def run_chatbot_graph(graph, input, config):
             with st.chat_message(message["role"]):
                 st.write(message["content"])
 
-    # Add download button for chat history
+    # Create chat history download link
     chat_history_str = "\n\n".join([f"{msg['role']}: {msg['content']}" for msg in st.session_state.chat_history])
-    st.download_button(
-        label="Download Chat History",
-        data=chat_history_str,
-        file_name="chat_history.txt",
-        mime="text/plain"
-    )
+    href = f'data:text/plain;charset=utf-8,{urllib.parse.quote(chat_history_str)}'
+    st.markdown(f'<a href="{href}" download="chat_history.txt">Download Chat History</a>', unsafe_allow_html=True)
     
     with st.expander("Display Agent's Thoughts"):
         st.write(output)
