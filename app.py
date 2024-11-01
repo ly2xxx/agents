@@ -163,18 +163,42 @@ async def run_research_graph(input, chain):
         st.write("\n---\n")
 
 def run_chatbot_graph(graph, input, config):
-    output = graph.invoke(input, config=config)
-    if isinstance(output, str):
-        st.write("---")
-        st.write("Output:")
-        st.write(output)
-    else:
-        for node_name, output_value in output.items():
-            st.write("---")
-            st.write(f"Output from node '{node_name}':")
-            st.write(output_value)
-    st.write("\n---\n")
+    # Initialize chat history if not exists
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
+    
+    # Create containers for chat display
+    response_container = st.container()
+    prompt_container = st.container()
 
+    # Get user input from the input parameter
+    user_input = input["messages"][0].content
+    
+    # Add user message to chat history
+    st.session_state.chat_history.append({"role": "user", "content": user_input})
+    
+    # Get chatbot response
+    output = graph.invoke(input, config=config)
+    
+    # Process and display chatbot response
+    if isinstance(output, str):
+        response = output
+    else:
+        # Extract response from output dictionary
+        response = next(iter(output.values()))
+    
+    # Add assistant response to chat history
+    st.session_state.chat_history.append({"role": "assistant", "content": response})
+    
+    # Display full chat history
+    with response_container:
+        for message in st.session_state.chat_history:
+            with st.chat_message(message["role"]):
+                st.write(message["content"])
+    
+    # Display agent thoughts/debugging info
+    with st.expander("Display Agent's Thoughts"):
+        st.write(output)
 
 if __name__ == "__main__":
     main()
