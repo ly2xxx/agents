@@ -56,8 +56,8 @@ def main():
     elif st.session_state.previous_agent != chain_selection:
         if "chat_history" in st.session_state:
             del st.session_state.chat_history
-        st.session_state.previous_agent = chain_selection    
-        
+        st.session_state.previous_agent = chain_selection
+
     # Get available models for the selected chain
     available_models = CHAIN_MODEL_OPTIONS.get(chain_selection, ["gpt-4o-mini", "llama3.2"])
     model_selection = st.selectbox("Select LLM model", available_models)
@@ -66,7 +66,6 @@ def main():
     else:
         llm = ChatOllama(model=model_selection, temperature=0)
         llm_travel = ChatOpenAI(model=model_selection, base_url="http://localhost:11434/v1", temperature=0)
-
     web_research = WebResearchGraph(llm)
     rag_chatbot = RAGResearchChatbot(llm)
     article_writer = ArticleWriterStateMachine()
@@ -148,6 +147,10 @@ def main():
         for path in temp_file_paths:
             os.unlink(path)
 
+    # Add this section to re-render chat history after page reloads
+    if chain_selection == RAG_CHATBOT_AGENT and "chat_history" in st.session_state:
+        render_chat_history_and_thoughts(st.session_state.chat_history)
+
 def displayGraph(chain, chain_selection):
     # Display the graph visualization
     graph = chain.get_graph(xray=True)
@@ -171,6 +174,24 @@ async def run_research_graph(input, chain):
             else:
                 st.write(output_value)
         st.write("\n---\n")
+
+def render_chat_history_and_thoughts(chat_history, output=None):
+    with st.container():
+        # Render chat history
+        for message in chat_history:
+            with st.chat_message(message["role"]):
+                st.write(message["content"])
+        
+        # Render download link
+        if chat_history:
+            chat_history_str = "\n\n".join([f"{msg['role']}: {msg['content']}" for msg in chat_history])
+            href = f'data:text/plain;charset=utf-8,{urllib.parse.quote(chat_history_str)}'
+            st.markdown(f'<a href="{href}" download="chat_history.txt">Download Chat History</a>', unsafe_allow_html=True)
+        
+        # Render agent thoughts
+        if output:
+            with st.expander("Display Agent's Thoughts"):
+                st.write(output)
 
 def run_chatbot_graph(graph, input, config):
     if "chat_history" not in st.session_state:
@@ -196,18 +217,8 @@ def run_chatbot_graph(graph, input, config):
     
     st.session_state.chat_history.append({"role": "assistant", "content": response})
     
-    with response_container:
-        for message in st.session_state.chat_history:
-            with st.chat_message(message["role"]):
-                st.write(message["content"])
-
-    # Create chat history download link
-    chat_history_str = "\n\n".join([f"{msg['role']}: {msg['content']}" for msg in st.session_state.chat_history])
-    href = f'data:text/plain;charset=utf-8,{urllib.parse.quote(chat_history_str)}'
-    st.markdown(f'<a href="{href}" download="chat_history.txt">Download Chat History</a>', unsafe_allow_html=True)
-    
-    with st.expander("Display Agent's Thoughts"):
-        st.write(output)
+    # Call the render method
+    render_chat_history_and_thoughts(st.session_state.chat_history, output)
 
 
 if __name__ == "__main__":
