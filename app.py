@@ -87,7 +87,7 @@ def main():
     displayGraph(langgraph_chain, chain_selection)
 
     # Get user input
-    user_input = st.text_area("Enter your query:")
+    user_input = st.text_area("Enter your query:", key=f"query_{chain_selection}")
 
     # Create a placeholder
     dynamic_content_container = st.empty()
