@@ -48,6 +48,15 @@ def main():
     st.title("Multi-agent Assistant Demo")
 
     chain_selection = st.selectbox("Select assistant", [TRAVEL_AGENT, RESEARCH_AGENT, RAG_RESEARCH_AGENT, RAG_CHATBOT_AGENT, ARTICLE_WRITER])
+    
+    # Clear chat history when switching away from RAG Chatbot Agent
+    if "previous_agent" not in st.session_state:
+        st.session_state.previous_agent = chain_selection
+    elif st.session_state.previous_agent != chain_selection:
+        if "chat_history" in st.session_state:
+            del st.session_state.chat_history
+        st.session_state.previous_agent = chain_selection    
+        
     # Get available models for the selected chain
     available_models = CHAIN_MODEL_OPTIONS.get(chain_selection, ["gpt-4o-mini", "llama3.2"])
     model_selection = st.selectbox("Select LLM model", available_models)
@@ -177,9 +186,6 @@ def run_chatbot_graph(graph, input, config):
     # Extract AIMessage content from the string output
     if isinstance(output, dict):
         # response_value = str(next(iter(output.values())))
-        # ai_message_start = response_value.find("AIMessage(content='") + len("AIMessage(content='")
-        # ai_message_end = response_value.find("', response_metadata")
-        # response = response_value[ai_message_start:ai_message_end]
          response = output["messages"][-1].content
     else:
         # Find AIMessage content in the string
@@ -193,6 +199,15 @@ def run_chatbot_graph(graph, input, config):
         for message in st.session_state.chat_history:
             with st.chat_message(message["role"]):
                 st.write(message["content"])
+
+    # Add download button for chat history
+    chat_history_str = "\n\n".join([f"{msg['role']}: {msg['content']}" for msg in st.session_state.chat_history])
+    st.download_button(
+        label="Download Chat History",
+        data=chat_history_str,
+        file_name="chat_history.txt",
+        mime="text/plain"
+    )
     
     with st.expander("Display Agent's Thoughts"):
         st.write(output)
