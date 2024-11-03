@@ -8,6 +8,9 @@ from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.document_loaders import PyPDFLoader, TextLoader
 import logging
+import pandas as pd
+from openpyxl import load_workbook
+from langchain.schema import Document
 
 class RAGInput(BaseModel):
     query: str = Field(description="The question to be answered using the RAG system.")
@@ -24,6 +27,20 @@ def rag_query(query: str, file_path: str) -> str:
     elif file_path.lower().endswith('.md') or file_path.lower().endswith('.txt'):
         loader = TextLoader(file_path)
         pages = loader.load()
+    elif file_path.lower().endswith('.xlsx'):
+        # Get all sheet names
+        excel_file = pd.ExcelFile(file_path)
+        # all_sheets_data = []
+        documents = []
+        # Read each sheet
+        for sheet_name in excel_file.sheet_names:
+            df = pd.read_excel(excel_file, sheet_name=sheet_name)
+            df = df.astype(str)
+            sheet_text = f"Sheet: {sheet_name}\n{df.to_string()}"
+            # Create Document object directly
+            doc = Document(page_content=sheet_text, metadata={"source": sheet_name})
+            documents.append(doc)
+        pages = documents
     else:
         raise ValueError("Unsupported file type. Please provide a PDF or Markdown txt file.")
 
