@@ -152,6 +152,12 @@ def main():
         render_chat_history_and_thoughts(st.session_state.chat_history)
 
 def displayGraph(chain, chain_selection):
+    # Add mermaid initialization scripts to the page
+    st.markdown("""
+        <script src="mermaid.min.js"></script>
+        <script>mermaid.initialize({startOnLoad:true});</script>
+    """, unsafe_allow_html=True)
+    
     # Display the graph visualization
     graph = chain.get_graph(xray=True)
     mermaid_png = graph.draw_mermaid_png()
@@ -161,7 +167,110 @@ def displayGraph(chain, chain_selection):
     new_height = 460  # Desired width in pixels
     new_width = int(new_height * image.width / image.height)  # Maintain aspect ratio
     new_image = image.resize((new_width, new_height))
-    st.image(new_image, caption=chain_selection)#, use_column_width=True)
+    st.image(new_image, caption=chain_selection)
+
+# def displayGraph(chain, chain_selection):
+#     # Get the graph
+#     graph = chain.get_graph(xray=True)
+    
+#     # Create Mermaid syntax with proper indentation
+#     mermaid_lines = [
+#         "            graph TD"
+#     ]
+    
+#     # Add nodes with indentation
+#     for node_id, node in graph.nodes.items():
+#         mermaid_lines.append(f'            {node_id}["{node.name}"]')
+    
+#     # Add edges with indentation
+#     for edge in graph.edges:
+#         if edge.conditional and edge.data:
+#             mermaid_lines.append(f'            {edge.source} -->|{edge.data}| {edge.target}')
+#         else:
+#             mermaid_lines.append(f'            {edge.source} --> {edge.target}')
+    
+#     mermaid_definition = "\n".join(mermaid_lines)
+
+#     mock_mermaid_definition = """<pre class="mermaid">
+#             graph TD
+#             A[Client] -->|tcp_123| B
+#             B(Load Balancer)
+#             B -->|tcp_456| C[Server1]
+#             B -->|tcp_456| D[Server2]
+#     </pre>"""
+#     # graph TD __start__["__start__"] travel_agent["travel_agent"] language_assistant["language_assistant"] visualizer["visualizer"] designer["designer"] bb6936485e364c8880a6132667c0f271["ChatPromptTemplate"] 153ea937f2b54bb88465d0751ab06cb3["ChatOpenAI"] bd70292b68f548dbab6ab5e330f0f140["JsonOutputFunctionsParser"] __end__["__end__"] bb6936485e364c8880a6132667c0f271 --> 153ea937f2b54bb88465d0751ab06cb3 153ea937f2b54bb88465d0751ab06cb3 --> bd70292b68f548dbab6ab5e330f0f140 __start__ --> bb6936485e364c8880a6132667c0f271 designer --> __end__ language_assistant --> bb6936485e364c8880a6132667c0f271 travel_agent --> bb6936485e364c8880a6132667c0f271 visualizer --> bb6936485e364c8880a6132667c0f271 bd70292b68f548dbab6ab5e330f0f140 --> travel_agent bd70292b68f548dbab6ab5e330f0f140 --> language_assistant bd70292b68f548dbab6ab5e330f0f140 --> visualizer bd70292b68f548dbab6ab5e330f0f140 -->|FINISH| designer
+
+#     # Render the diagram with proper HTML structure
+#     st.markdown(f"""
+#         <pre class="mermaid">
+#             {mock_mermaid_definition}
+#         </pre>
+#         <script type="module">
+#             import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+#             mermaid.initialize({{ startOnLoad: true }});
+#         </script>
+#     """, unsafe_allow_html=True)
+    
+#     st.caption(chain_selection)
+
+# def displayGraph(chain, chain_selection):
+#     # Get the graph
+#     graph = chain.get_graph(xray=True)
+    
+#     # Create Mermaid syntax with proper indentation
+#     mermaid_lines = [
+#         "            graph TD"
+#     ]
+    
+#     # Add nodes with indentation and replace spaces with underscores
+#     for node_id, node in graph.nodes.items():
+#         node_id_processed = node.name.replace(" ", "_")
+#         mermaid_lines.append(f'            {node_id_processed}["{node.name}"]')
+    
+#     # Add edges with indentation and replace spaces with underscores in node references
+#     for edge in graph.edges:
+#         source = edge.source.replace(" ", "_")
+#         target = edge.target.replace(" ", "_")
+#         if edge.conditional and edge.data:
+#             mermaid_lines.append(f'            {source} -->|{edge.data}| {target}')
+#         else:
+#             mermaid_lines.append(f'            {source} --> {target}')
+    
+#     mermaid_definition = "\n".join(mermaid_lines)
+    
+#     # Create complete HTML with mermaid
+#     # check visually on https://mermaid.live/
+#     html_content = f"""
+#     <html>
+#       <body>
+#         <pre class="mermaid">
+# {mermaid_definition}
+#         </pre>
+        
+#         <script type="module">
+#           import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+#           mermaid.initialize({{ startOnLoad: true }});
+#         </script>
+        
+#         <!--
+#         <script type="module">
+#           import mermaid from 'mermaid.min.js';
+#           mermaid.initialize({{ startOnLoad: true }});
+#         </script>
+#         -->
+#         <!--
+#         <script src="mermaid.min.js"></script>
+# 	    <script>mermaid.initialize({{startOnLoad:true}});</script>
+#         -->
+#       </body>
+#     </html>
+#     """
+    
+#     # Use components.v1.html to render
+#     st.components.v1.html(html_content, height=600)
+#     st.caption(chain_selection)
+
+
 
 async def run_research_graph(input, chain):
     async for output in chain.astream(input):
