@@ -240,11 +240,15 @@ def displayGraph(chain, chain_selection):
     
 #     # Create complete HTML with mermaid
 #     # check visually on https://mermaid.live/
+#     # comparison - https://swimm.io/learn/mermaid-js/mermaid-js-a-complete-guide
+#     # repo - https://github.com/mermaid-js/mermaid
+#     # plugin - https://marketplace.visualstudio.com/items?itemName=bierner.markdown-mermaid
+
 #     html_content = f"""
 #     <html>
 #       <body>
 #         <pre class="mermaid">
-# {mermaid_definition}
+#             {mermaid_definition}
 #         </pre>
         
 #         <script type="module">
@@ -254,8 +258,9 @@ def displayGraph(chain, chain_selection):
         
 #         <!--
 #         <script type="module">
-#           import mermaid from 'mermaid.min.js';
-#           mermaid.initialize({{ startOnLoad: true }});
+#             import mermaid from './mermaid.esm.mjs';
+#             mermaid.initialize({{ startOnLoad: false, logLevel: 0 }});
+#             await mermaid.run();
 #         </script>
 #         -->
 #         <!--
