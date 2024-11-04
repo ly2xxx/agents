@@ -12,6 +12,7 @@ import pandas as pd
 from openpyxl import load_workbook
 from langchain.schema import Document
 import base64
+import streamlit as st
 
 class RAGInput(BaseModel):
     query: str = Field(description="The question to be answered using the RAG system.")
@@ -19,8 +20,13 @@ class RAGInput(BaseModel):
 
 @tool("rag_query", args_schema=RAGInput)
 def rag_query(query: str, file_path: str) -> str:
-    """Query a PDF or Markdown document using RAG (Retrieval-Augmented Generation)."""
+    """Query a PDF or Markdown document using RAG (Retrieval-Augmented Generation). Or extract Image binary data to pass on to the next Agent."""
     
+    # Initialize session state for image data
+    if "image_data" not in st.session_state:
+        st.session_state.image_data = ""
+
+    pages = query
     # Determine file type and load accordingly
     if file_path.lower().endswith('.pdf'):
         loader = PyPDFLoader(file_path)
@@ -44,23 +50,26 @@ def rag_query(query: str, file_path: str) -> str:
         pages = documents
     elif file_path.lower().endswith('.png'):
         with open(file_path, "rb") as f:
-            image_data = base64.b64encode(f.read()).decode("utf-8")
-            pages = image_data
+            st.session_state.image_data = base64.b64encode(f.read()).decode("utf-8")
+            # pages = image_data
     else:
         raise ValueError("Unsupported file type. Please provide a PDF or Markdown txt file.")
 
     # Rest of the function remains the same
-    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
-    texts = text_splitter.split_documents(pages)
+    if(query != pages):
+        text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+        texts = text_splitter.split_documents(pages)
 
-    embeddings = OpenAIEmbeddings()
-    db = FAISS.from_documents(texts, embeddings)
+        embeddings = OpenAIEmbeddings()
+        db = FAISS.from_documents(texts, embeddings)
 
-    docs = db.similarity_search(query)
+        docs = db.similarity_search(query)
 
-    response = f"Based on the document content, here's the relevant information:\n\n"
-    for doc in docs:
-        response += f"{doc.page_content}\n\n"
+        response = f"Based on the document content, here's the relevant information:\n\n"
+        for doc in docs:
+            response += f"{doc.page_content}\n\n"
+    else: # No file or only image file is provided
+        response = query
 
     return response
 

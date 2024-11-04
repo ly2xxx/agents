@@ -18,6 +18,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
 from langchain.agents import AgentExecutor, create_openai_tools_agent
 import functools
+import streamlit as st
 
 from setup_environment import set_environment_variables
 
@@ -43,6 +44,19 @@ class RAGResearchChatbot:
             messages = [SystemMessage(content=system_message)] + state["messages"]
         else:
             messages = state["messages"]
+
+        # Add user messages with text and image if available
+        if st.session_state.image_data:
+            user_message_content = [
+                {"type": "text", "text": state["messages"][0].content},
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/jpeg;base64,{st.session_state.image_data}"
+                    }
+                }
+            ]
+            messages = messages + [HumanMessage(content=user_message_content)]
         
         response = self.LLM.invoke(messages)
         return {"messages": [response]}
