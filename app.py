@@ -21,7 +21,7 @@ RESEARCH_AGENT = "Research Assistant"
 RAG_RESEARCH_AGENT = "RAG Research Assistant"
 RAG_CHATBOT_AGENT = "RAG Chatbot Agent"
 ARTICLE_WRITER = "Article Writer"
-SUPPORT_TYPES = ["pdf", "txt", "md", "xlsx"]
+SUPPORT_TYPES = ["pdf", "txt", "md", "xlsx", "png"]
 CHAIN_MODEL_OPTIONS = {
     TRAVEL_AGENT: ["gpt-4o-mini"],
     RESEARCH_AGENT: ["gpt-4o-mini", "llama3.2"],
