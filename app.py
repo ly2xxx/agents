@@ -11,8 +11,6 @@ from PIL import Image
 import asyncio
 import tempfile
 import os
-from langchain_openai import ChatOpenAI
-from langchain_community.chat_models import ChatOllama
 from ui.file_picker import render_file_picker
 import urllib.parse
 
@@ -21,13 +19,28 @@ RESEARCH_AGENT = "Research Assistant"
 RAG_RESEARCH_AGENT = "RAG Research Assistant"
 RAG_CHATBOT_AGENT = "RAG Chatbot Agent"
 ARTICLE_WRITER = "Article Writer"
-SUPPORT_TYPES = ["pdf", "txt", "md", "xlsx", "png"]
-CHAIN_MODEL_OPTIONS = {
-    TRAVEL_AGENT: ["gpt-4o-mini"],
-    RESEARCH_AGENT: ["gpt-4o-mini", "llama3.2"],
-    RAG_RESEARCH_AGENT: ["gpt-4o-mini", "llama3.2"],
-    RAG_CHATBOT_AGENT: ["gpt-4o-mini", "llama3.2"],
-    ARTICLE_WRITER: ["gpt-4o-mini"]
+
+CHAIN_CONFIG = {
+    TRAVEL_AGENT: {
+        "models": ["gpt-4o-mini"],
+        "support_types": ["txt", "md"]
+    },
+    RESEARCH_AGENT: {
+        "models": ["gpt-4o-mini", "llama3.2"],
+        "support_types": ["pdf", "txt", "md"]
+    },
+    RAG_RESEARCH_AGENT: {
+        "models": ["gpt-4o-mini", "llama3.2"],
+        "support_types": ["pdf", "txt", "md", "xlsx"]
+    },
+    RAG_CHATBOT_AGENT: {
+        "models": ["gpt-4o-mini", "llama3.2"],
+        "support_types": ["pdf", "txt", "md", "xlsx", "png", "jpg"]
+    },
+    ARTICLE_WRITER: {
+        "models": ["gpt-4o-mini"],
+        "support_types": ["txt", "md"]
+    }
 }
 
 def process_uploaded_files(uploaded_files, support_types):
@@ -45,6 +58,14 @@ def process_uploaded_files(uploaded_files, support_types):
     
     return temp_file_paths
 
+def get_llm(model_selection):
+    if model_selection == "gpt-4o-mini":
+        from langchain_openai import ChatOpenAI
+        return ChatOpenAI(model=model_selection, temperature=0)
+    else:
+        from langchain_community.chat_models import ChatOllama
+        return ChatOllama(model=model_selection, base_url="http://localhost:11434", temperature=0)
+
 def main():
     st.title("Multi-agent Assistant Demo")
 
@@ -59,13 +80,9 @@ def main():
         st.session_state.previous_agent = chain_selection
 
     # Get available models for the selected chain
-    available_models = CHAIN_MODEL_OPTIONS.get(chain_selection, ["gpt-4o-mini", "llama3.2"])
+    available_models = CHAIN_CONFIG[chain_selection]["models"]
     model_selection = st.selectbox("Select LLM model", available_models)
-    if model_selection == "gpt-4o-mini":
-        llm = ChatOpenAI(model=model_selection, temperature=0)
-    else:
-        llm = ChatOllama(model=model_selection, temperature=0)
-        llm_travel = ChatOpenAI(model=model_selection, base_url="http://localhost:11434/v1", temperature=0)
+    llm = get_llm(model_selection)
     web_research = WebResearchGraph(llm)
     rag_chatbot = RAGResearchChatbot(llm)
     article_writer = ArticleWriterStateMachine()
@@ -94,19 +111,13 @@ def main():
     # File picker (only shown for RAG_RESEARCH_AGENT)
     if chain_selection in [RAG_RESEARCH_AGENT, RAG_CHATBOT_AGENT]:
         with dynamic_content_container.container():
-            uploaded_files = render_file_picker(SUPPORT_TYPES)
+            uploaded_files = render_file_picker(CHAIN_CONFIG[chain_selection]["support_types"])
     elif chain_selection in [ARTICLE_WRITER]:
         with dynamic_content_container.container():
             import mm_st
             mm_st.main()
     else:
         dynamic_content_container.empty()
-        # uploaded_files = []
-        # num_files = st.number_input("Pick your file(s) - files for Retrieval Augmented Query", min_value=1, value=1, step=1)
-        # for i in range(num_files):
-        #     file = st.file_uploader(f"Choose file {i+1}", type=SUPPORT_TYPES, key=f"file_{i}")
-        #     if file:
-        #         uploaded_files.append(file)
 
     if st.button("Submit"):
         temp_file_paths = []  # Initialize the list here
@@ -119,25 +130,13 @@ def main():
         elif chain_selection == RESEARCH_AGENT:
             asyncio.run(run_research_graph(query, langgraph_chain))
         elif chain_selection == RAG_RESEARCH_AGENT:
-            # # Save all uploaded files to temporary locations
-            # temp_file_paths = []
-            # suffixes = ['.' + file_type for file_type in SUPPORT_TYPES]
-            # for uploaded_file in uploaded_files:
-            #     file_suffix = os.path.splitext(uploaded_file.name)[1].lower()
-            #     if file_suffix in suffixes:
-            #         with tempfile.NamedTemporaryFile(delete=False, suffix=file_suffix) as temp_file:
-            #             temp_file.write(uploaded_file.read())
-            #             temp_file_paths.append(temp_file.name)
-            #     else:
-            #         st.warning(f"File type {file_suffix} not supported. Supported types: {','.join(SUPPORT_TYPES)}")
-
             # Convert the list of file paths to a comma-delimited string
-            temp_file_paths = process_uploaded_files(uploaded_files, SUPPORT_TYPES)#','.join(temp_file_paths)
+            temp_file_paths = process_uploaded_files(uploaded_files, CHAIN_CONFIG[chain_selection]["support_types"])#','.join(temp_file_paths)
             # Use the temporary file path in the function call
             asyncio.run(run_research_graph({"messages": [HumanMessage(content=f"Query: {user_input}\nFile Path: {','.join(temp_file_paths)}")]}, langgraph_chain))
         elif chain_selection == RAG_CHATBOT_AGENT:
             config = {"configurable": {"thread_id": "1"}}  # Add a thread_id
-            temp_file_paths = process_uploaded_files(uploaded_files, SUPPORT_TYPES)
+            temp_file_paths = process_uploaded_files(uploaded_files, CHAIN_CONFIG[chain_selection]["support_types"])
             input_data = {"messages": [HumanMessage(content=f"Query: {user_input}\nFile Path: {','.join(temp_file_paths)}")]}
             run_chatbot_graph(langgraph_chain, input_data, config)
         else:
