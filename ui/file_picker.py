@@ -1,4 +1,5 @@
 import streamlit as st
+from PIL import Image
 
 def render_file_picker(support_types):
     with st.sidebar:
@@ -8,4 +9,10 @@ def render_file_picker(support_types):
             file = st.file_uploader(f"Choose file {i+1}", type=support_types, key=f"file_{i}")
             if file:
                 uploaded_files.append(file)
+                # Add thumbnail preview for PNG files
+                if file.type == "image/png":
+                    image = Image.open(file)
+                    # Create thumbnail with max size 100x100 while maintaining aspect ratio
+                    image.thumbnail((100, 100))
+                    st.image(image, caption=f"Preview of {file.name}")
     return uploaded_files
