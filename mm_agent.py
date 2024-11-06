@@ -22,18 +22,34 @@ class WriterAgent:
             }
             """
 
+        # prompt = [{
+        #     "role": "system",
+        #     "content": "You are a newspaper writer. Your sole purpose is to write a well-written article about the meeting described in the minutes "
+        # }, {
+        #     "role": "user",
+        #     "content": f"Today's date is {datetime.now().strftime('%d/%m/%Y')}\n."
+
+        #                f"{the_text}\n"
+        #                f""""Your task is to write an article for me about the meeting described above covering what seems most important.
+        #                The article should be approximately {word_count} words and should be divided into paragraphs
+        #                using newline characters.
+        #                You are reporting news. Do not editorialize."""
+        #                f"Please return nothing but a JSON in the following format:\n"
+        #                f"{sample_json}\n "
+
+        # }]
         prompt = [{
             "role": "system",
-            "content": "You are a newspaper writer. Your sole purpose is to write a well-written article about the meeting described in the minutes "
+            "content": "You are a blog writer. Your sole purpose is to write a well-written article about the topic described in the given context "
         }, {
             "role": "user",
             "content": f"Today's date is {datetime.now().strftime('%d/%m/%Y')}\n."
 
                        f"{the_text}\n"
-                       f""""Your task is to write an article for me about the meeting described above covering what seems most important.
+                       f""""Your task is to write an article for me about the topic described above covering what seems most important.
                        The article should be approximately {word_count} words and should be divided into paragraphs
                        using newline characters.
-                       You are reporting news. Do not editorialize."""
+                       You are an experienced blogger. Make the article interesting to read."""
                        f"Please return nothing but a JSON in the following format:\n"
                        f"{sample_json}\n "
 
@@ -55,9 +71,23 @@ class WriterAgent:
                 "message": "message to the critique"
             }
             """
+        # prompt = [{
+        #     "role": "system",
+        #     "content": "You are a newspaper editor. Your sole purpose is to edit a well-written article about a "
+        #                "topic based on given critique\n "
+        # }, {
+        #     "role": "user",
+        #     "content": f"{str(article)}\n"
+        #                 f"Your task is to edit the article based on the critique given.\n "
+        #                 f"Please return json format of the 'paragraphs' and a new 'message' field"
+        #                 f"to the critique that explain your changes or why you didn't change anything.\n"
+        #                 f"please return nothing but a JSON in the following format:\n"
+        #                 f"{sample_revise_json}\n "
+
+        # }]
         prompt = [{
             "role": "system",
-            "content": "You are a newspaper editor. Your sole purpose is to edit a well-written article about a "
+            "content": "You are a blog editor. Your sole purpose is to edit a well-written article about a "
                        "topic based on given critique\n "
         }, {
             "role": "user",
@@ -260,9 +290,10 @@ class ArticleWriterStateMachine:
             else:
                 values[last_state]['raw'] = values[last_state]['raw'].decode('utf-8')
             self.chain.update_state(self.thread,values[last_state])
-            result=self.chain.invoke(None,self.thread,output_keys=last_state)
         except Exception as e:
-            result=None
+            values[last_state]['raw'] = None
+            self.chain.update_state(self.thread,values[last_state])
+        result=self.chain.invoke(None,self.thread,output_keys=last_state)
         #print("r",result)
         if result is None:
             values=self.chain.get_state(self.thread).values
