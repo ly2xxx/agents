@@ -252,8 +252,17 @@ class ArticleWriterStateMachine:
         last_state=next(iter(values))
         #print(self.chain.get_state(self.thread))
         values[last_state].update(new_values)
-        self.chain.update_state(self.thread,values[last_state])
-        result=self.chain.invoke(None,self.thread,output_keys=last_state)
+        try:
+            # Decode bytes to string
+            import base64
+            if values[last_state]['file_name'].lower().endswith('.pdf'):
+                values[last_state]['raw'] = base64.b64encode(values[last_state]['raw']).decode('utf-8')
+            else:
+                values[last_state]['raw'] = values[last_state]['raw'].decode('utf-8')
+            self.chain.update_state(self.thread,values[last_state])
+            result=self.chain.invoke(None,self.thread,output_keys=last_state)
+        except Exception as e:
+            result=None
         #print("r",result)
         if result is None:
             values=self.chain.get_state(self.thread).values

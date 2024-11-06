@@ -22,12 +22,15 @@ def extract_text(content,content_type):
         return "\n".join([paragraph.text for paragraph in Document(io.BytesIO(content)).paragraphs])
     elif 'pdf' == content_type:
         text = []
-        with fitz.open(stream=content, filetype="pdf") as doc:
+        import base64
+        pdf_content = base64.b64decode(content)
+        with fitz.open(stream=pdf_content, filetype="pdf") as doc:
             for page in doc:
                 text.append(page.get_text())
         return text
     elif 'txt' == content_type:
-        return content.decode('utf-8',errors='replace')
+        return content
+        # return content.decode('utf-8',errors='replace')
     else:
         raise ValueError("Unsupported file type or content")
         

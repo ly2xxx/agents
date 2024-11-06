@@ -42,7 +42,8 @@ def process_form(form_number,article):
                                                            on_change=set_value)
             else: #if have to upload file
                 st.file_uploader('Choose your source document',
-                                      type=['pdf','docx','html','txt'],
+                                    #   type=['pdf','docx','html','txt'],
+                                      type=['pdf', 'txt'],
                                       accept_multiple_files=False,
                                       help="""
                                       This is the source for the story you want written.
@@ -98,7 +99,7 @@ def main():
         st.session_state["newvalues"]=None
 
     # App title
-    st.title("Human-In-The-Loop AI Collaboration with Reflection Agent")
+    st.title("Human-In-The-Loop AI Collaboration with Reflection Agent(for illustration only-streamlit page in a container example)")
 
     # with st.sidebar:
     #     st.markdown("""
