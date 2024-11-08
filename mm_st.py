@@ -1,5 +1,5 @@
-import os
 
+import os
 import streamlit as st
 import mm_agent
 from setup_environment import set_environment_variables
@@ -84,12 +84,32 @@ def process_form(form_number,article):
             # For example, print or store the contents of text_boxes
 
             st.session_state["newvalues"]={"body":text_boxes[0],"critique":text_boxes[1],"button":"OK"}
-        
+
+def get_prompts():
+    with st.sidebar:
+        st.subheader("Configure AI Prompts")
+
+        # Writer prompt configuration
+        writer_prompt = st.text_area(
+            "Writer Prompt",
+            value="You are a blog writer. Your sole purpose is to write a well-written article about the topic described in the given context",
+            key="writer_prompt"
+        )
+
+        # Revise prompt configuration  
+        revise_prompt = st.text_area(
+            "Revise Prompt", 
+            value="You are a blog editor. Your sole purpose is to edit a well-written article about a topic based on given critique",
+            key="revise_prompt"
+        )
+
+        return writer_prompt, revise_prompt
+
 def rerun():
     st.session_state['dm'] = None
     st.session_state['result']=None
     st.session_state["newvalues"]=None
-            
+
 def main():
     # Initialize session state
     if 'api_key' not in st.session_state:
@@ -98,18 +118,19 @@ def main():
         st.session_state['result']=None
         st.session_state["newvalues"]=None
 
+    # Get configured prompts
+    writer_prompt, revise_prompt = get_prompts()
+
     # App title
-    st.title("Human-In-The-Loop AI Collaboration with Reflection Agent(for illustration only-streamlit page in a container example)")
+    st.title("Human-In-The-Loop AI Collaboration with Reflection Agent")
 
-    # with st.sidebar:
-    #     st.markdown("""
-    # ### What it's all about:
-
-    #     This application demonstrates
-    #     how artificial intelligence
-    #     agents and a human (you) can
-    #     collaborate on a task.
-        
+    if st.session_state['api_key'] and st.session_state["dm"] is None:
+        os.environ['OPENAI_API_KEY'] = st.session_state['api_key']
+        st.session_state['dm'] = mm_agent.ArticleWriterStateMachine(
+            writer_prompt=writer_prompt,
+            revise_prompt=revise_prompt
+        )
+        st.session_state["result"] = st.session_state['dm'].start()
     #     Today's task is to write a news
     #     article about a meeting for 
     #     which a text transcript or 

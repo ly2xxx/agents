@@ -209,7 +209,11 @@ class StartAgent:
             
         
 class ArticleWriterStateMachine:
-    def __init__(self,api_key=None):
+    def __init__(self, writer_prompt=None, revise_prompt=None):
+        self.writer_prompt = writer_prompt or "You are a blog writer. Your sole purpose is to write a well-written article about the topic described in the given context"
+        self.revise_prompt = revise_prompt or "You are a blog editor. Your sole purpose is to edit a well-written article about a topic based on given critique"
+        
+        # Rest of initialization...
         import os
         from langgraph.checkpoint.sqlite import SqliteSaver
         import sqlite3
@@ -218,11 +222,8 @@ class ArticleWriterStateMachine:
             return SqliteSaver(conn=sqlite3.connect(conn_string, check_same_thread=False))
         SqliteSaver.from_conn_stringx=classmethod(from_conn_stringx)
 
-        if api_key:
-            os.environ['OPENAI_API_KEY']=api_key
-        else:
-            from dotenv import load_dotenv
-            load_dotenv()
+        from dotenv import load_dotenv
+        load_dotenv()
         self.memory = SqliteSaver.from_conn_stringx(":memory:")
 
         start_agent=StartAgent()
@@ -241,27 +242,46 @@ class ArticleWriterStateMachine:
         workflow.add_node("output",output_agent.run)
         workflow.add_node("human_review",human_review.run)
  
-        #workflow.add_edge(start_agent.name,"input")
         workflow.add_edge("input","write")
 
         workflow.add_edge('write', 'critique')
         workflow.add_edge('critique','human_review')
         workflow.add_edge(start_agent.name,"input")
-        # workflow.add_conditional_edges(start_key='human_review',
-        #                                condition=lambda x: "accept" if x['critique'] is None else "revise",
-        #                                conditional_edge_mapping={"accept": "output", "revise": "write"})
         workflow.add_conditional_edges(
             'human_review',
             lambda x: "accept" if x['critique'] is None else "revise",
             {"accept": "output", "revise": "write"}
         )              
         
-        # set up start and end nodes
         workflow.set_entry_point(start_agent.name)
         workflow.set_finish_point("output")
         
         self.thread={"configurable": {"thread_id": "2"}}
         self.chain=workflow.compile(checkpointer=self.memory,interrupt_after=[start_agent.name,"critique"])
+        # self.chain = StateGraph(GraphState)
+        
+        # Update the write_article node
+        # self.chain.add_node("write_article", self.write_article)
+        # messages = [{
+        #     "role": "system",
+        #     "content": self.writer_prompt
+        # }]
+
+    def write_article(self, state):
+        # Update message creation
+        messages = [{
+            "role": "system", 
+            "content": self.writer_prompt
+        }]
+        # Rest of method...
+
+    def revise_article(self, state):
+        # Update message creation
+        messages = [{
+            "role": "system",
+            "content": self.revise_prompt
+        }]
+        # Rest of method...
 
     def getGraph(self):
         return self.chain
