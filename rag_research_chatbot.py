@@ -46,6 +46,9 @@ class RAGResearchChatbot:
             messages = state["messages"]
 
         # Add user messages with text and image if available
+        if 'image_data' not in st.session_state:
+            st.session_state.image_data = None
+
         if st.session_state.image_data:
             user_message_content = [
                 {"type": "text", "text": state["messages"][0].content},
