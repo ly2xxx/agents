@@ -33,3 +33,4 @@ python-docx==1.1.2
 PyMuPDF==1.24.11
 webdriver_manager==4.0.2
 openpyxl==3.1.5
+# docling==2.4.2
