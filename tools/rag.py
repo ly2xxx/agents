@@ -6,13 +6,21 @@ from langchain_openai import OpenAIEmbeddings
 # from langchain.vectorstores import Chroma
 from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.document_loaders import PyPDFLoader, TextLoader
+# from langchain.document_loaders import PyPDFLoader, TextLoader
+from langchain_community.document_loaders import PyPDFLoader,TextLoader
 import logging
 import pandas as pd
 from openpyxl import load_workbook
 from langchain.schema import Document
 import base64
 import streamlit as st
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
 
 class RAGInput(BaseModel):
     query: str = Field(description="The question to be answered using the RAG system.")
@@ -59,7 +67,13 @@ def rag_query(query: str, file_path: str) -> str:
     if(query != pages):
         text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
         texts = text_splitter.split_documents(pages)
-
+        
+        # Add validation
+        if not texts:
+            warning_response = "No content found to process in the document."
+            logging.info(warning_response)
+            return warning_response
+            
         embeddings = OpenAIEmbeddings()
         db = FAISS.from_documents(texts, embeddings)
 

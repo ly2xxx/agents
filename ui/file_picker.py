@@ -36,5 +36,10 @@ def render_file_picker(support_types):
                 elif file.name.lower().endswith('.xlsx'):
                     df = pd.read_excel(file)
                     st.dataframe(df.head(3), height=100)
-                    
+
+                file.seek(0)
+    # Reset all file pointers before returning
+    for file in uploaded_files:
+        file.seek(0)
+               
     return uploaded_files

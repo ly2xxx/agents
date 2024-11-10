@@ -51,7 +51,15 @@ def process_uploaded_files(uploaded_files, support_types):
         file_suffix = os.path.splitext(uploaded_file.name)[1].lower()
         if file_suffix in suffixes:
             with tempfile.NamedTemporaryFile(delete=False, suffix=file_suffix) as temp_file:
-                temp_file.write(uploaded_file.read())
+                # Reset the file pointer to the beginning
+                # uploaded_file.seek(0)
+                # Write the content
+                content=uploaded_file.read()
+                # Write bytes directly to temp file
+                temp_file.write(content)
+                temp_file.flush()  # Ensure content is written to disk
+                # Reset the file pointer again for any subsequent reads
+                temp_file.seek(0)
                 temp_file_paths.append(temp_file.name)
         else:
             st.warning(f"File type {file_suffix} not supported. Supported types: {','.join(support_types)}")
