@@ -70,7 +70,8 @@ def process_form(form_number,article):
         text_boxes = []
         for content, title in zip(initial_contents, titles):
             st.subheader(title)
-            text_input = st.text_area("", value=content, height=150 if titles.index(title) == 0 else 50)
+            # text_input = st.text_area("", value=content, height=150 if titles.index(title) == 0 else 50)
+            text_input = st.text_area("", value=content, height=150 if titles.index(title) == 0 else 70)
             text_boxes.append(text_input)
         
         if "url" in article:
